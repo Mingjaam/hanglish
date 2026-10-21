@@ -82,6 +82,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem.menu = menu
         updateIcon()
         startTap()
+        // First launch: show where the settings live, next to the Accessibility prompt.
+        if !defaults.bool(forKey: "shownWelcome") {
+            defaults.set(true, forKey: "shownWelcome")
+            settingsWindow.show(app: self)
+        }
+    }
+
+    /// Opening the app again (Launchpad, Spotlight, Finder) while it runs opens the settings window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        settingsWindow.show(app: self)
+        return false
     }
 
     /// The tap needs the Accessibility permission; ask once, then wait for it.

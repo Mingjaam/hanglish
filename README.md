@@ -11,10 +11,12 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest/download/Hanglish-windows-x64.zip"><img src="https://img.shields.io/badge/Windows%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-ff6b4a?style=for-the-badge&logo=windows&logoColor=white" alt="Windows용 받기" height="44"></a>
+  <a href="../../releases/latest/download/Hanglish-Setup.exe"><img src="https://img.shields.io/badge/Windows%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-ff6b4a?style=for-the-badge&logo=windows&logoColor=white" alt="Windows용 받기" height="44"></a>
   &nbsp;
-  <a href="../../releases/latest/download/Hanglish-macos.zip"><img src="https://img.shields.io/badge/macOS%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-38bdf8?style=for-the-badge&logo=apple&logoColor=white" alt="macOS용 받기" height="44"></a>
+  <a href="../../releases/latest/download/Hanglish.dmg"><img src="https://img.shields.io/badge/macOS%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-38bdf8?style=for-the-badge&logo=apple&logoColor=white" alt="macOS용 받기" height="44"></a>
 </p>
+
+<p align="center"><sub>설치 없이 쓰고 싶다면 <a href="../../releases/latest/download/Hanglish-windows-x64.zip">Windows 압축 파일</a> · <a href="../../releases/latest/download/Hanglish-macos.zip">macOS 압축 파일</a></sub></p>
 
 <p align="center">
   <a href="https://mingjaam.github.io/hanglish/"><b>🌐 웹사이트</b></a> &nbsp;·&nbsp;
@@ -80,7 +82,7 @@
     </td>
     <td width="33%" valign="top">
       <h3>🪶 가벼워요</h3>
-      설치 없이 압축만 풀면 끝. 인터넷 연결도, 따로 깔 프로그램도 필요 없어요.
+      설치 파일 하나로 끝. 인터넷 연결도, 따로 깔 프로그램도 필요 없어요.
     </td>
   </tr>
 </table>
@@ -100,17 +102,17 @@
   <tr>
     <td valign="top">
       <ol>
-        <li><a href="../../releases/latest/download/Hanglish-windows-x64.zip"><b>Hanglish-windows-x64.zip</b></a>을 받아 압축을 풀어요.</li>
-        <li><code>Hanglish.exe</code>를 실행해요.<br><sub>"Windows의 PC 보호" 창이 뜨면 <b>추가 정보 → 실행</b>. 서명 인증서가 없는 무료 프로그램이라 뜨는 창이에요.</sub></li>
-        <li>트레이에 아이콘이 생기면 끝!<br><sub>아이콘을 두 번 누르면 설정 창이 열려요.</sub></li>
+        <li><a href="../../releases/latest/download/Hanglish-Setup.exe"><b>Hanglish-Setup.exe</b></a>를 받아 실행해요.<br><sub>"Windows의 PC 보호" 창이 뜨면 <b>추가 정보 → 실행</b>. 서명 인증서가 없는 무료 프로그램이라 뜨는 창이에요.</sub></li>
+        <li>설치는 관리자 권한 없이 끝나요.<br><sub>바탕 화면 바로가기, Windows 시작 시 자동 실행은 체크로 골라요.</sub></li>
+        <li>시작 메뉴에 <b>한글리쉬</b>가 생겨요.<br><sub>켜져 있을 때 다시 누르면 설정 창이 열려요. 제거는 "앱 및 기능"에서.</sub></li>
       </ol>
     </td>
     <td valign="top">
       <ol>
-        <li><a href="../../releases/latest/download/Hanglish-macos.zip"><b>Hanglish-macos.zip</b></a>을 받아 풀고, <code>Hanglish.app</code>을 응용 프로그램 폴더로 옮겨요.</li>
+        <li><a href="../../releases/latest/download/Hanglish.dmg"><b>Hanglish.dmg</b></a>를 열고, 한글리쉬 아이콘을 <b>응용 프로그램</b> 폴더로 끌어다 놓아요.</li>
         <li>처음 열 때 안내가 나오면 <b>시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기</b>.</li>
         <li><b>손쉬운 사용</b>에서 한글리쉬를 켜요. <sub>(키 입력을 받는 데 필요해요)</sub></li>
-        <li>입력 소스는 ABC로 두고 그냥 치세요. 메뉴 막대 아이콘 → <b>설정 열기</b>.</li>
+        <li>입력 소스는 ABC로 두고 그냥 치세요.<br><sub>Launchpad에서 한글리쉬를 다시 열면 설정 창이 열려요.</sub></li>
       </ol>
     </td>
   </tr>
@@ -190,15 +192,16 @@
 # Windows (.NET 9 SDK)
 dotnet run --project src/Hanglish.Eval -c Release -- --engine          # 상태 처리 테스트
 dotnet run --project src/Hanglish.Eval -c Release -- --corpus tests/corpus/ko_test.txt tests/corpus/mixed_test.txt
-dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
+dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true -o out/Hanglish
+ISCC /DVersion=0.2.1 /DSource=%CD%\out\Hanglish installer\Hanglish.iss   # out\Hanglish-Setup.exe (Inno Setup)
 
 # macOS (Xcode 15 이상)
 sh mac/scripts/prepare.sh            # 사전을 Swift 패키지로 복사
 (cd mac && swift test)               # Windows 엔진과 결과 비교 포함
-sh mac/scripts/bundle.sh 0.2.0 "$PWD/out"
+sh mac/scripts/bundle.sh 0.2.1 "$PWD/out"   # Hanglish.dmg + zip
 ```
 
-`v*` 태그를 올리면 GitHub Actions가 두 운영체제용 zip을 만들어 Release에 올리고, `site/`를 GitHub Pages로 배포해요.
+`v*` 태그를 올리면 GitHub Actions가 Windows 설치 프로그램, macOS 디스크 이미지, 압축 파일을 만들어 Release에 올려요. `site/`는 main에 올릴 때 GitHub Pages로 배포돼요.
 </details>
 
 <details>
@@ -212,6 +215,7 @@ sh mac/scripts/bundle.sh 0.2.0 "$PWD/out"
 | `src/Hanglish.Eval` | 테스트, 정확도 측정, 파라미터 튜닝, 사이트 데모 기록 |
 | `mac/` | macOS 앱과 Swift 판단 엔진 |
 | `site/` | 설치 사이트 (GitHub Pages) |
+| `installer/` | Windows 설치 프로그램 스크립트 (Inno Setup) |
 | `tools/` | 사전 · 시험 데이터 · 아이콘 · GIF 만드는 스크립트 |
 | `tests/` | 시험 문장과 실제 입력 테스트 도구 |
 </details>

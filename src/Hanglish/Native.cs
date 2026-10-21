@@ -107,6 +107,10 @@ static class Native
     public static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint dpiX, out uint dpiY);
 
     [DllImport("oleacc.dll")]
+    public static extern int AccessibleObjectFromEvent(IntPtr hwnd, int idObject, int idChild,
+        [MarshalAs(UnmanagedType.Interface)] out object obj, [MarshalAs(UnmanagedType.Struct)] out object child);
+
+    [DllImport("oleacc.dll")]
     public static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint id, ref Guid iid,
         [MarshalAs(UnmanagedType.IUnknown)] out object obj);
 

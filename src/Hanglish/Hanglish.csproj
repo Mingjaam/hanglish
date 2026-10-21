@@ -3,21 +3,15 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <!-- For System.Windows.Automation (password and code field detection). -->
-    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Hanglish</AssemblyName>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\assets\Hanglish.ico</ApplicationIcon>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- UseWPF trims the implicit usings to avoid WPF/WinForms clashes; System.IO is still wanted. -->
-    <Using Include="System.IO" />
-  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\assets\tray.ico" LogicalName="tray.ico" />
     <EmbeddedResource Include="..\..\assets\Hanglish.ico" LogicalName="app.ico" />

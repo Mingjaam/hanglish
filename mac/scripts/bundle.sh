@@ -1,5 +1,6 @@
 #!/bin/sh
-# Builds a universal Hanglish.app and zips it: scripts/bundle.sh <version> <output-dir>
+# Builds a universal Hanglish.app and packs it as a drag-to-Applications disk image (and a zip):
+#   scripts/bundle.sh <version> <output-dir>
 set -eu
 version=$1
 out=$2
@@ -22,3 +23,12 @@ sed "s/__VERSION__/$version/g" "$here/scripts/Info.plist" > "$app/Contents/Info.
 # Ad-hoc signature: enough to run locally; distribution without warnings needs a Developer ID.
 codesign --force --deep --sign - "$app"
 (cd "$out" && ditto -c -k --keepParent Hanglish.app "Hanglish-macos.zip")
+
+# Disk image: the app next to an Applications shortcut, the usual way Mac apps install.
+stage="$out/dmg"
+rm -rf "$stage" "$out/Hanglish.dmg"
+mkdir -p "$stage"
+cp -R "$app" "$stage/"
+ln -s /Applications "$stage/Applications"
+hdiutil create -volname "한글리쉬" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Hanglish.dmg"
+rm -rf "$stage"

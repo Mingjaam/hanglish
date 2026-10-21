@@ -234,7 +234,7 @@ sealed class KeyboardHook : IDisposable
     void OnFocus(IntPtr hook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
         engine.Reset();
-        SensitiveField.Refresh();
+        if (eventType == EVENT_OBJECT_FOCUS) SensitiveField.Focused(hwnd, idObject, idChild);
         KeyHandled?.Invoke();
         if (eventType != EVENT_SYSTEM_FOREGROUND) return;
         currentApp = ForegroundApp();

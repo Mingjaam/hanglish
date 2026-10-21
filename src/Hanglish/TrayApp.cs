@@ -43,7 +43,6 @@ sealed class TrayApp : ApplicationContext
         {
             Enabled = settings.Enabled, FlipKey = settings.FlipKey, SkipSensitiveFields = settings.SkipSensitiveFields,
         };
-        SensitiveField.Refresh();
         foreach (var app in settings.ExcludedApps) hook.ExcludedApps.Add(app);
         hook.KeyHandled += () => { bubbleDelay.Stop(); bubbleDelay.Start(); };
         bubbleDelay.Tick += (_, _) =>
@@ -103,6 +102,17 @@ sealed class TrayApp : ApplicationContext
     }
 
     public void OpenSettings() => OpenSettings(0);
+
+    /// <summary>Opens the settings window whenever another launch of the app signals it.</summary>
+    public void ListenForShow(EventWaitHandle signal)
+    {
+        var ui = SynchronizationContext.Current!;
+        var thread = new Thread(() =>
+        {
+            while (signal.WaitOne()) ui.Post(_ => OpenSettings(0), null);
+        }) { IsBackground = true, Name = "Hanglish show signal" };
+        thread.Start();
+    }
 
     public void OpenSettings(int section)
     {

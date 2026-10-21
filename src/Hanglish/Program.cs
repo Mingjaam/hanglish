@@ -8,9 +8,11 @@ static class Program
     static void Main(string[] args)
     {
         using var single = new Mutex(true, @"Local\Hanglish", out bool first);
+        using var showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\Hanglish.Show");
         if (!first)
         {
-            MessageBox.Show("한글리쉬가 이미 실행 중입니다. 작업 표시줄 오른쪽 아이콘을 확인하세요.", "한글리쉬");
+            // Launched again from a shortcut: ask the running copy to open its settings window.
+            showSignal.Set();
             return;
         }
         ApplicationConfiguration.Initialize();
@@ -22,6 +24,7 @@ static class Program
             return;
         }
         var app = new TrayApp(decider);
+        app.ListenForShow(showSignal);
         // --snapshot=<dir> renders the settings sections and bubble styles to PNGs and exits,
         // without capturing the screen (for docs and visual checks).
         if (args.FirstOrDefault(a => a.StartsWith("--snapshot=")) is { } snapshot)
