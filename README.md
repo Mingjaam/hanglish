@@ -1,104 +1,194 @@
 <p align="center">
-  <img src="assets/png/icon-256.png" width="128" alt="">
-</p>
-
-<h1 align="center">한글리쉬 Hanglish</h1>
-
-<p align="center">
-  <b>그냥 치세요. 한글인지 English인지 고르는 건 한글리쉬가.</b><br>
-  한/영 키 없이 영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 골라 주는 Windows · macOS 도우미입니다.
+  <img src="docs/banner.png" alt="한글리쉬 Hanglish — 그냥 치세요. 한글인지 English인지 고르는 건 저희가." width="100%">
 </p>
 
 <p align="center">
-  <a href="../../releases/latest/download/Hanglish-windows-x64.zip"><b>⬇ Windows용 받기</b></a>
-  &nbsp;·&nbsp;
-  <a href="../../releases/latest/download/Hanglish-macos.zip"><b>⬇ macOS용 받기</b></a>
-  &nbsp;·&nbsp;
-  <a href="https://mingjaam.github.io/hanglish/">웹사이트</a>
+  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/Mingjaam/hanglish?style=flat-square&color=ff6b4a&label=%EC%B5%9C%EC%8B%A0%20%EB%B2%84%EC%A0%84" alt="최신 버전"></a>
+  <a href="../../releases"><img src="https://img.shields.io/github/downloads/Mingjaam/hanglish/total?style=flat-square&color=38bdf8&label=%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C" alt="다운로드"></a>
+  <img src="https://img.shields.io/badge/Windows%2010%20%C2%B7%2011-0c0e17?style=flat-square&logo=windows&logoColor=white" alt="Windows 10 · 11">
+  <img src="https://img.shields.io/badge/macOS%2013%2B-0c0e17?style=flat-square&logo=apple&logoColor=white" alt="macOS 13+">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0c0e17?style=flat-square" alt="MIT License"></a>
 </p>
 
-| Windows | macOS |
-|:---:|:---:|
-| <img src="docs/demo-windows.gif" width="420" alt="Windows에서 동작하는 모습"> | <img src="docs/demo-macos.gif" width="420" alt="macOS에서 동작하는 모습"> |
+<p align="center">
+  <a href="../../releases/latest/download/Hanglish-windows-x64.zip"><img src="https://img.shields.io/badge/Windows%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-ff6b4a?style=for-the-badge&logo=windows&logoColor=white" alt="Windows용 받기" height="44"></a>
+  &nbsp;
+  <a href="../../releases/latest/download/Hanglish-macos.zip"><img src="https://img.shields.io/badge/macOS%EC%9A%A9%20%EB%B0%9B%EA%B8%B0-38bdf8?style=for-the-badge&logo=apple&logoColor=white" alt="macOS용 받기" height="44"></a>
+</p>
 
-<sub>위 화면은 실제 판단 엔진이 키마다 보여 준 결과를 그대로 재생한 것입니다.</sub>
+<p align="center">
+  <a href="https://mingjaam.github.io/hanglish/"><b>🌐 웹사이트</b></a> &nbsp;·&nbsp;
+  <a href="#-설치">설치</a> &nbsp;·&nbsp;
+  <a href="#-이런-걸-해요">기능</a> &nbsp;·&nbsp;
+  <a href="#-정확도">정확도</a> &nbsp;·&nbsp;
+  <a href="#-자주-묻는-질문">FAQ</a>
+</p>
 
-## 무엇을 하나요
+<br>
+
+<table>
+  <tr>
+    <th width="50%">🪟 Windows</th>
+    <th width="50%">🍎 macOS</th>
+  </tr>
+  <tr>
+    <td><img src="docs/demo-windows.gif" alt="Windows에서 동작하는 모습" width="100%"></td>
+    <td><img src="docs/demo-macos.gif" alt="macOS에서 동작하는 모습" width="100%"></td>
+  </tr>
+</table>
+
+<p align="center"><sub>실제 판단 엔진이 키마다 보여 준 결과를 그대로 재생한 화면입니다.</sub></p>
+
+<br>
+
+## ✨ 이런 걸 해요
+
+영문 자판 그대로 두벌식 자리를 치면, **띄어쓰기·엔터·문장부호를 누르는 순간** 그 단어를 한글로 쓸지 영어로 쓸지 골라 줍니다. 한/영 키를 누를 일이 없어요.
 
 | 이렇게 치면 | 이렇게 써져요 | |
-|---|---|---|
-| `dkssudgktpdy` | 안녕하세요 | 한글은 그냥 한글 |
-| `hello world` | hello world | 영어도 한/영 키 없이 |
-| `githubdptj` | github에서 | 영어 단어 + 한글 조사 |
-| `rlaalswo` | 김민재 | 사전에 없는 이름도 한글로 |
-| `so good` | so good | 처음엔 "내"로 보여도 뒤 단어를 보고 고침 |
-| `dlTEk` | 있다 | ㅆ 다음 글자까지 Shift가 눌린 실수도 문맥으로 |
+|:---|:---|:---|
+| `dkssudgktpdy` | **안녕하세요** | 한글은 그냥 한글 |
+| `hello world` | **hello world** | 영어도 한/영 키 없이 |
+| `githubdptj` | **github에서** | 영어 단어 + 한글 조사를 알아서 나눠요 |
+| `rlaalswo` | **김민재** | 사전에 없는 이름도 한글로 |
+| `so good` | **so good** | 처음엔 "내"로 보여도 뒤 단어를 보고 고쳐요 |
+| `dlTEk` | **있다** | ㅆ 다음 글자까지 Shift가 눌린 실수도 문맥으로 |
 
-- **커서 위 미리보기** — 단어를 다 치기 전에 어떻게 확정될지 커서 위에 작은 말풍선으로 보여 줍니다. 흰색 · 어두운색 · 간단히 중에 고를 수 있어요.
-- **틀리면 키 하나** — Windows는 오른쪽 <kbd>Ctrl</kbd>, macOS는 오른쪽 <kbd>⌘</kbd>을 한 번 누르면 방금 단어가 반대 언어로 바뀝니다. 바꾼 결과는 같은 앞 단어 뒤에서 기억하고, 서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다.
-- **한/영 키는 쉬어요** — 한/영 키를 눌러도 아무 일도 하지 않습니다. 습관처럼 눌러도 괜찮아요.
-- **내 컴퓨터 안에서만** — 판단은 PC 안의 단어 빈도 사전과 키 순서 확률 모델이 합니다. 입력 내용을 보내거나 저장하지 않습니다.
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>💬 커서 위 미리보기</h3>
+      단어를 다 치기 전에 어떻게 확정될지 커서 바로 위에 작은 말풍선으로 보여 줘요. 흰색 · 어두운색 · 간단히 중에서 고를 수 있어요.
+    </td>
+    <td width="33%" valign="top">
+      <h3>🔁 틀리면 키 하나</h3>
+      Windows는 오른쪽 <kbd>Ctrl</kbd>, macOS는 오른쪽 <kbd>⌘</kbd>을 한 번. 방금 단어가 반대 언어로 바뀌고, 같은 앞 단어 뒤에서 기억해요.
+    </td>
+    <td width="33%" valign="top">
+      <h3>🔒 내 컴퓨터 안에서만</h3>
+      판단은 PC 안의 작은 사전과 확률 모델이 해요. 입력 내용을 보내거나 저장하지 않고, 비밀번호·인증번호 칸에서는 쉬어요.
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>⌨️ 한/영 키는 쉬어요</h3>
+      습관처럼 한/영 키를 눌러도 아무 일도 하지 않아요. 그냥 계속 치면 됩니다.
+    </td>
+    <td width="33%" valign="top">
+      <h3>⚙️ 설정 창</h3>
+      말풍선 디자인, 뒤집기 키, 쓰지 않을 앱, 기억한 교정을 한곳에서 바꿔요.
+    </td>
+    <td width="33%" valign="top">
+      <h3>🪶 가벼워요</h3>
+      설치 없이 압축만 풀면 끝. 인터넷 연결도, 따로 깔 프로그램도 필요 없어요.
+    </td>
+  </tr>
+</table>
 
-## 설치
+<p align="center">
+  <img src="docs/settings-general.png" alt="일반 설정" width="49%">
+  <img src="docs/settings-bubble.png" alt="말풍선 설정" width="49%">
+</p>
 
-### Windows 10 · 11
+## 📦 설치
 
-1. [Hanglish-windows-x64.zip](../../releases/latest/download/Hanglish-windows-x64.zip)을 받아 압축을 풉니다.
-2. `Hanglish.exe`를 실행합니다. "Windows의 PC 보호" 창이 뜨면 **추가 정보 → 실행**을 누르세요(서명 인증서가 없는 무료 프로그램이라 뜨는 창입니다).
-3. 작업 표시줄 트레이에 아이콘이 생기면 끝. 아이콘을 두 번 누르면 설정 창이 열립니다.
+<table>
+  <tr>
+    <th width="50%">🪟 Windows 10 · 11</th>
+    <th width="50%">🍎 macOS 13 이상 (Apple 실리콘 · Intel)</th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <ol>
+        <li><a href="../../releases/latest/download/Hanglish-windows-x64.zip"><b>Hanglish-windows-x64.zip</b></a>을 받아 압축을 풀어요.</li>
+        <li><code>Hanglish.exe</code>를 실행해요.<br><sub>"Windows의 PC 보호" 창이 뜨면 <b>추가 정보 → 실행</b>. 서명 인증서가 없는 무료 프로그램이라 뜨는 창이에요.</sub></li>
+        <li>트레이에 아이콘이 생기면 끝!<br><sub>아이콘을 두 번 누르면 설정 창이 열려요.</sub></li>
+      </ol>
+    </td>
+    <td valign="top">
+      <ol>
+        <li><a href="../../releases/latest/download/Hanglish-macos.zip"><b>Hanglish-macos.zip</b></a>을 받아 풀고, <code>Hanglish.app</code>을 응용 프로그램 폴더로 옮겨요.</li>
+        <li>처음 열 때 안내가 나오면 <b>시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기</b>.</li>
+        <li><b>손쉬운 사용</b>에서 한글리쉬를 켜요. <sub>(키 입력을 받는 데 필요해요)</sub></li>
+        <li>입력 소스는 ABC로 두고 그냥 치세요. 메뉴 막대 아이콘 → <b>설정 열기</b>.</li>
+      </ol>
+    </td>
+  </tr>
+</table>
 
-### macOS 13 이상 (Apple 실리콘 · Intel)
+## 📊 정확도
 
-1. [Hanglish-macos.zip](../../releases/latest/download/Hanglish-macos.zip)을 받아 압축을 풀고 `Hanglish.app`을 응용 프로그램 폴더로 옮깁니다.
-2. 처음 열 때 안내가 나오면 **시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기**를 누릅니다.
-3. **시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용**에서 한글리쉬를 켭니다(키 입력을 받는 데 필요합니다).
-4. 입력 소스는 ABC로 두고 그냥 치세요. 메뉴 막대 아이콘 → **설정 열기**에서 원하는 대로 바꿀 수 있습니다.
+학습에 쓰지 않은 문장을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, **문장 전체가 그대로 나온 비율**이에요.
 
-## 설정
+| 시험 데이터 | 개수 | 정확도 |
+|:---|---:|---:|
+| 🇰🇷 한국어 문장 (Tatoeba) | 3,000 | **100%** |
+| 🇺🇸 영어 문장 (Tatoeba) | 3,000 | **100%** |
+| 🔀 영어 단어 + 조사가 섞인 문장\* | 800 | **99.1%** |
+| 🙋 사람 이름\* | 800 | **99.1%** |
+| ⇧ Shift가 한 글자 더 눌린 문장\* | 600 | **100%** |
+| 🔤 문맥 없는 영어 단어 하나 | 800 | **99.8%** |
 
-<img src="docs/settings-general.png" width="400" alt="일반 설정"> <img src="docs/settings-bubble.png" width="400" alt="말풍선 설정">
+<sub>\* 자동으로 만든 시험용 데이터예요. 문맥 없이 <code>go</code>만 치면 "해"가 되는 것처럼, 양쪽 다 흔한 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키 한 번이면 돼요.</sub>
 
-- **일반** — 켜기/끄기, 시작할 때 실행, 입력 중 표시(한글로 미리 보기 / 영문 그대로), 뒤집기 키
-- **말풍선** — 커서 위 미리보기 켜기/끄기, 디자인(흰색 · 어두운색 · 간단히)
-- **쓰지 않는 앱** — 게임이나 vim처럼 글자 키를 단축키로 쓰는 프로그램에서 끄기
-- **저장된 교정** — 기억한 교정을 보고 하나씩 또는 모두 지우기
+## 🧠 어떻게 고르나요
 
-## 정확도
+```text
+ dkssud  ──▶  여러 가지로 읽기  ──▶  점수 매기기  ──▶  확정
+              · dkssud (영어)         · 단어 빈도 사전            · 가장 그럴듯한 쪽으로
+              · 안녕 (두벌식 한글)    · 키 순서 확률 모델         · 애매하면 다음 단어를
+              · 영어 + 조사           · 앞 문장의 한글 비율         보고 함께 고쳐요
+              · Shift 실수를 뺀 한글
+```
 
-학습에 쓰지 않은 문장을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 그대로 나온 비율입니다(2026-10-21).
+- 단어 빈도 사전(영어 11만 · 한국어 17만 단어)과 키 순서 5-gram 모델을 섞어 확률을 계산해요.
+- Windows는 키보드 후킹으로, macOS는 CGEvent 탭으로 키를 받아 글자를 바꿔 써요.
+- 판단 엔진은 C#과 Swift로 같은 내용을 구현했고, macOS 테스트가 두 엔진의 결과가 같은지 매번 확인해요 (현재 1,524문장 모두 일치).
 
-| 시험 데이터 | 개수 | 문장 정확도 |
-|---|---:|---:|
-| 한국어 문장 (Tatoeba) | 3,000 | 100% |
-| 영어 문장 (Tatoeba) | 3,000 | 100% |
-| 영어 단어 + 조사가 섞인 문장\* | 800 | 99.1% |
-| 사람 이름\* | 800 | 99.1% |
-| Shift가 한 글자 더 눌린 문장\* | 600 | 100% |
-| 문맥 없는 영어 단어 하나 | 800 | 99.8% |
+## 🙋 자주 묻는 질문
 
-\* 자동으로 만든 시험용 데이터입니다. 문맥 없이 `go`만 치면 "해"가 되는 것처럼, 양쪽 다 흔한 짧은 단어 하나는 틀릴 수 있습니다. 그럴 땐 뒤집기 키 한 번이면 됩니다.
+<details>
+<summary><b>입력한 내용이 어디로 가나요?</b></summary>
+<br>
+아무 데도 가지 않아요. 판단은 컴퓨터 안에서만 하고 인터넷 연결도 쓰지 않아요. 저장하는 건 직접 고친 단어 목록과 설정뿐이에요.
+</details>
 
-## 동작 원리
+<details>
+<summary><b>비밀번호나 인증번호를 칠 때는요?</b></summary>
+<br>
+비밀번호 칸과 "인증번호", "OTP", "Verification code" 같은 이름이 붙은 칸에서는 쉬어요. 브라우저의 비밀번호 칸도 알아봐요. 설정 → 일반에서 끌 수 있어요.
+</details>
 
-1. 영문 자판에서 친 키(`dkssud`)를 단어가 끝날 때까지 모읍니다.
-2. 같은 키를 여러 가지로 읽습니다: 영어 그대로, 두벌식 한글(안녕), 영어 + 조사(github에서), Shift 실수를 뺀 한글.
-3. 각 읽기의 점수를 매깁니다: 단어 빈도 사전(영어 11만 · 한국어 17만 단어)과 키 순서 5-gram 모델을 섞은 확률, 앞 문장에서 한글이 차지하는 비율.
-4. 가장 그럴듯한 쪽으로 바꿔 씁니다. 양쪽 다 흔한 단어는 일단 확정해 두고, 다음 단어로 언어가 분명해지면 함께 고칩니다.
+<details>
+<summary><b>게임이나 vim처럼 글자 키를 단축키로 쓰는 프로그램은요?</b></summary>
+<br>
+메뉴의 "○○에서는 쓰지 않기"나 설정 창의 "쓰지 않는 앱"에 넣으면 그 프로그램에서만 꺼져요.
+</details>
 
-Windows는 저수준 키보드 후킹으로, macOS는 CGEvent 탭으로 키를 받아 글자를 바꿔 씁니다. 판단 엔진은 C#(`src/Hanglish.Core`)과 Swift(`mac/Sources/HanglishCore`)로 같은 내용을 구현했고, macOS 테스트가 두 엔진의 결과가 같은지 확인합니다.
+<details>
+<summary><b>잘 안 되는 곳이 있나요?</b></summary>
+<br>
 
-## 알려진 한계
+- 진짜 입력기(IME)가 아니라 키를 받아 지우고 다시 쓰는 방식이라, 자동완성이 글자를 선택해 두는 입력창(브라우저 주소창 등)에서는 어긋날 수 있어요.
+- Windows에서 관리자 권한으로 실행된 창에는 글자를 보낼 수 없어요.
+- macOS 앱은 Apple 개발자 서명이 없어서, 업데이트할 때마다 손쉬운 사용 권한을 다시 켜야 할 수 있어요.
+</details>
 
-- 진짜 입력기(IME)가 아니라 키를 받아 지우고 다시 쓰는 방식이라, 자동완성이 글자를 선택해 두는 입력창(브라우저 주소창 등)에서는 어긋날 수 있습니다.
-- Windows에서 관리자 권한으로 실행된 창에는 글자를 보낼 수 없습니다.
-- Windows에서 웹 브라우저의 비밀번호 칸은 알아채지 못합니다. 비밀번호를 칠 때는 잠시 꺼 주세요. (macOS는 보안 입력 중에 자동으로 멈춥니다.)
-- macOS 앱은 Apple 개발자 서명이 없어서, 업데이트할 때마다 손쉬운 사용 권한을 다시 켜야 할 수 있습니다.
+<details>
+<summary><b>백신이 막아요.</b></summary>
+<br>
+키 입력을 받아 글자를 바꿔 쓰기 때문에 일부 백신이 의심할 수 있어요. 소스 코드가 모두 공개되어 있으니 확인한 뒤 예외로 등록해 주세요.
+</details>
 
-## 직접 빌드하기
+## 🛠 개발
+
+<details>
+<summary><b>직접 빌드하기</b></summary>
+<br>
 
 ```sh
 # Windows (.NET 9 SDK)
-dotnet run --project src/Hanglish.Eval -c Release -- --engine                 # 상태 처리 테스트
+dotnet run --project src/Hanglish.Eval -c Release -- --engine          # 상태 처리 테스트
 dotnet run --project src/Hanglish.Eval -c Release -- --corpus tests/corpus/ko_test.txt tests/corpus/mixed_test.txt
 dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
 
@@ -108,17 +198,28 @@ sh mac/scripts/prepare.sh            # 사전을 Swift 패키지로 복사
 sh mac/scripts/bundle.sh 0.2.0 "$PWD/out"
 ```
 
-`v*` 태그를 올리면 GitHub Actions가 두 운영체제용 zip을 만들어 Release에 올리고, `site/`를 GitHub Pages로 배포합니다.
+`v*` 태그를 올리면 GitHub Actions가 두 운영체제용 zip을 만들어 Release에 올리고, `site/`를 GitHub Pages로 배포해요.
+</details>
 
-| 도구 | 하는 일 |
-|---|---|
-| `tools/build_lexicon.py` | 단어 빈도 사전 `lexicon.tsv.gz` 만들기 |
-| `tools/build_corpus.py`, `tools/build_hard_corpus.py` | 시험용 문장 만들기 |
-| `tools/make_icons.py` | `assets/*.svg`에서 아이콘(.ico, .iconset, 메뉴 막대) 만들기 |
-| `tools/make_readme_gif.py` | 웹사이트 데모를 README용 GIF로 만들기 |
+<details>
+<summary><b>폴더 구성</b></summary>
+<br>
 
-## 라이선스와 데이터 출처
+| 경로 | 내용 |
+|:---|:---|
+| `src/Hanglish.Core` | 판단 엔진 (C#) |
+| `src/Hanglish` | Windows 앱 — 트레이, 키보드 후킹, 말풍선, 설정 창 |
+| `src/Hanglish.Eval` | 테스트, 정확도 측정, 파라미터 튜닝, 사이트 데모 기록 |
+| `mac/` | macOS 앱과 Swift 판단 엔진 |
+| `site/` | 설치 사이트 (GitHub Pages) |
+| `tools/` | 사전 · 시험 데이터 · 아이콘 · GIF 만드는 스크립트 |
+| `tests/` | 시험 문장과 실제 입력 테스트 도구 |
+</details>
+
+## 📄 라이선스와 데이터 출처
 
 - 코드: [MIT License](LICENSE)
-- 단어 빈도 사전: [FrequencyWords](https://github.com/hermitdave/FrequencyWords)(OpenSubtitles 2018), [wordfreq](https://github.com/rspeer/wordfreq) — CC BY-SA 4.0
-- 시험 문장: [Tatoeba](https://tatoeba.org) — CC BY 2.0 FR (테스트에만 쓰고 앱에는 들어가지 않습니다)
+- 단어 빈도 사전: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (OpenSubtitles 2018), [wordfreq](https://github.com/rspeer/wordfreq) — CC BY-SA 4.0
+- 시험 문장: [Tatoeba](https://tatoeba.org) — CC BY 2.0 FR (테스트에만 쓰고 앱에는 들어가지 않아요)
+
+<p align="center"><br><img src="assets/png/icon-64.png" width="40" alt=""><br><sub>한/영 키, 이제 쉬게 해 주세요.</sub></p>

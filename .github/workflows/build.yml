@@ -77,7 +77,7 @@ jobs:
           generate_release_notes: true
 
   site:
-    if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+    if: github.ref == 'refs/heads/main'   # the github-pages environment only accepts main
     needs: [windows, macos]
     runs-on: ubuntu-latest
     permissions:
