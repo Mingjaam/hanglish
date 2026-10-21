@@ -71,8 +71,10 @@ jobs:
         run: |
           # The custom window needs its background image and the Finder layout file inside the image.
           hdiutil attach -nobrowse -readonly -mountpoint /tmp/hanglish-dmg out/Hanglish.dmg
-          ls -la /tmp/hanglish-dmg /tmp/hanglish-dmg/.background
+          ls -la /tmp/hanglish-dmg
           test -f /tmp/hanglish-dmg/.DS_Store
+          test -f /tmp/hanglish-dmg/.background.tiff
+          test -f /tmp/hanglish-dmg/.VolumeIcon.icns
           test -L /tmp/hanglish-dmg/Applications
           test -d /tmp/hanglish-dmg/Hanglish.app
           hdiutil detach /tmp/hanglish-dmg
