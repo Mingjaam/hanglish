@@ -24,16 +24,17 @@ sed "s/__VERSION__/$version/g" "$here/scripts/Info.plist" > "$app/Contents/Info.
 codesign --force --deep --sign - "$app"
 (cd "$out" && ditto -c -k --keepParent Hanglish.app "Hanglish-macos.zip")
 
-# Disk image: the app next to an Applications shortcut, the usual way Mac apps install.
-stage="$out/dmg"
-rm -rf "$stage" "$out/Hanglish.dmg"
-mkdir -p "$stage"
-cp -R "$app" "$stage/"
-ln -s /Applications "$stage/Applications"
-# hdiutil sometimes fails with "Resource busy" on CI machines; a short retry clears it.
+# Disk image: the app next to an Applications shortcut on a custom background, the usual way
+# Mac apps install. dmgbuild writes the window layout itself, so it works without Finder on CI.
+tools="$out/.dmgtools"
+python3 -m venv "$tools"
+"$tools/bin/pip" install --quiet dmgbuild
+tiffutil -cathidpicheck "$here/scripts/dmg-background.png" "$here/scripts/dmg-background@2x.png"     -out "$out/dmg-background.tiff"
+rm -f "$out/Hanglish.dmg"
+# hdiutil (used by dmgbuild) sometimes fails with "Resource busy" on CI machines; a short retry clears it.
 for attempt in 1 2 3 4 5; do
-    if hdiutil create -volname "한글리쉬" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Hanglish.dmg"; then break; fi
+    if "$tools/bin/dmgbuild" -s "$here/scripts/dmg_settings.py"         -D app="$app" -D background="$out/dmg-background.tiff" -D icon="$app/Contents/Resources/Hanglish.icns"         "한글리쉬" "$out/Hanglish.dmg"; then break; fi
     [ "$attempt" = 5 ] && exit 1
     sleep 5
 done
-rm -rf "$stage"
+rm -rf "$tools" "$out/dmg-background.tiff"
