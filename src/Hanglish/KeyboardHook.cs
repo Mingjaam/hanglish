@@ -6,8 +6,6 @@ using static Hanglish.Native;
 
 namespace Hanglish;
 
-public enum FlipKey { HangulKey, RightCtrl }
-
 /// <summary>
 /// Feeds global keystrokes to the <see cref="Engine"/> and types its output with SendInput.
 /// Keys the engine owns are swallowed and re-typed, so their order relative to our own
@@ -45,7 +43,11 @@ sealed class KeyboardHook : IDisposable
     }
 
     public bool Enabled { get; set; } = true;
-    public FlipKey FlipKey { get; set; } = FlipKey.RightCtrl;
+    /// <summary>Virtual-key code of the key that flips a word (한/영 by default).</summary>
+    public int FlipKey { get; set; } = FlipKeys.Default;
+
+    /// <summary>Set by the settings window: the next allowed key pressed becomes the flip key (null on Esc).</summary>
+    public Action<int?>? RecordNextKey { get; set; }
     /// <summary>Leave password and verification-code fields alone.</summary>
     public bool SkipSensitiveFields { get; set; } = true;
     public HashSet<string> ExcludedApps { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -80,15 +82,23 @@ sealed class KeyboardHook : IDisposable
         int vk = (int)info.vkCode;
         bool down = message is WM_KEYDOWN or WM_SYSKEYDOWN;
 
-        if (vk == VK_HANGUL)
+        if (RecordNextKey is { } record && down)
         {
-            // The 한/영 key no longer switches the IME: Korean and English both come out of English mode.
-            if (down && FlipKey == FlipKey.HangulKey) Apply(engine.Flip(), info);
-            else if (down) HangulKeyPressed?.Invoke();
+            if (vk == VK_ESCAPE) { RecordNextKey = null; record(null); return true; }
+            if (!FlipKeys.Allowed(vk)) return true;
+            RecordNextKey = null;
+            record(vk);
             return true;
         }
-        if (FlipKey == FlipKey.RightCtrl && vk == VK_RCONTROL)
+        if (vk == FlipKey)
         {
+            if (!FlipKeys.IsModifier(vk))
+            {
+                // A dedicated key (한/영, Caps Lock, F-keys): flip on press and keep it from doing anything else.
+                if (down) Apply(engine.Flip(), info);
+                return true;
+            }
+            // A modifier flips only when tapped alone, so shortcuts with it still work.
             if (down && !flipArmed) { flipArmed = true; flipDownAt = Environment.TickCount64; }
             else if (!down && flipArmed)
             {
@@ -96,6 +106,12 @@ sealed class KeyboardHook : IDisposable
                 if (Environment.TickCount64 - flipDownAt < 500) Apply(engine.Flip(), info);
             }
             return false;
+        }
+        if (vk == VK_HANGUL)
+        {
+            // Not the flip key: still swallowed, since Korean and English both come out of English mode.
+            if (down) HangulKeyPressed?.Invoke();
+            return true;
         }
         if (!down) return false;
         flipArmed = false;

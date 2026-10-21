@@ -30,5 +30,10 @@ rm -rf "$stage" "$out/Hanglish.dmg"
 mkdir -p "$stage"
 cp -R "$app" "$stage/"
 ln -s /Applications "$stage/Applications"
-hdiutil create -volname "한글리쉬" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Hanglish.dmg"
+# hdiutil sometimes fails with "Resource busy" on CI machines; a short retry clears it.
+for attempt in 1 2 3 4 5; do
+    if hdiutil create -volname "한글리쉬" -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Hanglish.dmg"; then break; fi
+    [ "$attempt" = 5 ] && exit 1
+    sleep 5
+done
 rm -rf "$stage"

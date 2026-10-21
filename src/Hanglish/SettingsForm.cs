@@ -98,10 +98,39 @@ sealed class SettingsForm : Form
             app.Settings.Preview == PreviewMode.Hangul ? 0 : 1,
             i => app.SetPreview(i == 0 ? PreviewMode.Hangul : PreviewMode.Raw));
         page.Subheading("뒤집기 키");
-        page.Radio(new[] { ("오른쪽 Ctrl 한 번", "방금 단어를 반대 언어로 바꿉니다. 한/영 키는 아무 일도 하지 않습니다."),
-                           ("한/영 키", "한/영 키로 방금 단어를 바꿉니다.") },
-            app.Settings.FlipKey == FlipKey.RightCtrl ? 0 : 1,
-            i => app.SetFlip(i == 0 ? FlipKey.RightCtrl : FlipKey.HangulKey));
+        page.Note("지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꾸는 키입니다. Ctrl·Alt 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요.");
+        var presets = FlipKeys.Presets;
+        int current = Array.IndexOf(presets, app.Settings.FlipKeyCode);
+        var radios = new List<RadioButton>();
+        var custom = new Label { AutoSize = true, ForeColor = Muted, Margin = P(0, 6, 0, 0) };
+        void ShowCurrent() => custom.Text = $"지금 키: {FlipKeys.Name(app.Settings.FlipKeyCode)}";
+        ShowCurrent();
+        for (int i = 0; i < presets.Length; i++)
+        {
+            int vk = presets[i];
+            var radio = new RadioButton { Text = FlipKeys.Name(vk) + (vk == FlipKeys.Default ? " (기본)" : ""), Checked = i == current,
+                AutoSize = true, Margin = P(0, 2, 0, 0) };
+            radio.CheckedChanged += (_, _) => { if (radio.Checked) { app.SetFlip(vk); ShowCurrent(); } };
+            radios.Add(radio);
+            page.Add(radio);
+        }
+        Button? record = null;
+        record = page.Button("다른 키로 바꾸기...", () =>
+        {
+            record!.Text = "바꿀 키를 누르세요 (Esc: 취소)";
+            record.Enabled = false;
+            app.RecordFlipKey(vk =>
+            {
+                if (IsDisposed) return;
+                record.Text = "다른 키로 바꾸기...";
+                record.Enabled = true;
+                int index = Array.IndexOf(presets, app.Settings.FlipKeyCode);
+                for (int r = 0; r < radios.Count; r++) radios[r].Checked = r == index;
+                ShowCurrent();
+            });
+        });
+        page.Row(record, custom);
+        FormClosed += (_, _) => app.CancelRecording();
     }
 
     void Bubble(Page page)
@@ -176,7 +205,7 @@ sealed class SettingsForm : Form
 
     void Corrections(Page page)
     {
-        page.Note("오른쪽 Ctrl로 바꾼 단어들입니다. \"앞 단어 뒤에서만\"은 그 앞 단어 다음에 칠 때만 적용됩니다.");
+        page.Note("뒤집기 키로 바꾼 단어들입니다. \"앞 단어 뒤에서만\"은 그 앞 단어 다음에 칠 때만 적용됩니다.");
         var view = new ListView
         {
             View = View.Details, FullRowSelect = true, Width = P(470), Height = P(250), BorderStyle = BorderStyle.FixedSingle,

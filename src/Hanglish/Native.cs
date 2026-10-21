@@ -182,4 +182,10 @@ static class Native
 
     [DllImport("user32.dll")]
     public static extern bool DestroyIcon(IntPtr icon);
+
+    [DllImport("user32.dll")]
+    public static extern uint MapVirtualKey(uint code, uint type);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetKeyNameText(int lParam, System.Text.StringBuilder name, int size);
 }

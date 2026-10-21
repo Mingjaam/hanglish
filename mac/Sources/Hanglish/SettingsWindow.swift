@@ -16,7 +16,18 @@ final class SettingsModel: ObservableObject {
     var enabled: Bool { get { app.enabled } set { app.enabled = newValue; objectWillChange.send() } }
     var caretPreview: Bool { get { app.caretPreview } set { app.caretPreview = newValue; objectWillChange.send() } }
     var preview: PreviewMode { get { app.preview } set { app.preview = newValue; objectWillChange.send() } }
-    var flipKey: FlipKey { get { app.flipKey } set { app.flipKey = newValue; objectWillChange.send() } }
+    var flipKey: Int64 { get { app.flipKey } set { app.flipKey = newValue; objectWillChange.send() } }
+    @Published var recording = false
+
+    /// The next key pressed becomes the flip key; esc cancels.
+    func recordFlipKey() {
+        recording = true
+        app.tap.recordNext = { [weak self] code in
+            guard let self else { return }
+            if let code { self.flipKey = code }
+            self.recording = false
+        }
+    }
     var skipSensitiveFields: Bool { get { app.skipSensitiveFields } set { app.skipSensitiveFields = newValue; objectWillChange.send() } }
     var bubbleStyle: BubbleStyle { get { app.bubbleStyle } set { app.bubbleStyle = newValue; objectWillChange.send() } }
     var excludedApps: [String] { app.excludedApps }
@@ -61,10 +72,19 @@ struct SettingsView: View {
             }
             .pickerStyle(.radioGroup)
             Picker("뒤집기 키", selection: $model.flipKey) {
-                Text("오른쪽 ⌘ 한 번").tag(FlipKey.rightCommand)
-                Text("오른쪽 ⌥ 한 번").tag(FlipKey.rightOption)
+                ForEach(FlipKeys.presets, id: \.self) { code in
+                    Text(FlipKeys.name(code) + (code == FlipKeys.defaultKey ? " (기본)" : "")).tag(code)
+                }
+                if !FlipKeys.presets.contains(model.flipKey) {
+                    Text(FlipKeys.name(model.flipKey)).tag(model.flipKey)
+                }
             }
             .pickerStyle(.radioGroup)
+            HStack {
+                Button(model.recording ? "바꿀 키를 누르세요 (esc: 취소)" : "다른 키로 바꾸기...") { model.recordFlipKey() }
+                    .disabled(model.recording)
+                Text("⌘ · ⌥ 같은 키는 혼자 눌렀다 뗄 때만 동작해요.").font(.caption).foregroundStyle(.secondary)
+            }
         }
         .padding(24)
     }

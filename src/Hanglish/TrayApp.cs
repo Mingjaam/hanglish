@@ -5,13 +5,12 @@ namespace Hanglish;
 /// <summary>The notification-area icon and its menu; owns the engine and the keyboard hook.</summary>
 sealed class TrayApp : ApplicationContext
 {
-    const string Help =
+    string Help =>
         "영문 자판 상태에서 두벌식 자리 그대로 치면 됩니다.\n" +
         "띄어쓰기·엔터·문장부호를 누르는 순간 한글인지 영어인지 골라서 확정합니다.\n\n" +
-        "• 오른쪽 Ctrl 한 번: 지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꿉니다.\n" +
+        $"• {FlipKeys.Name(settings.FlipKeyCode)}: 지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꿉니다.\n" +
         "   바로 한 번 더 누르면 되돌립니다. 바꾼 결과는 같은 앞 단어 뒤에서만 기억하고,\n" +
-        "   서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다.\n" +
-        "• 한/영 키는 누를 필요가 없어서 아무 일도 하지 않습니다.\n" +
+        "   서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다. 키는 설정에서 바꿀 수 있습니다.\n" +
         "• 뒤 단어로 언어가 분명해지면 앞의 애매한 단어도 고칩니다 (내 good → so good).\n" +
         "• Esc: 치던 단어를 영문 그대로 확정합니다.\n" +
         "• 커서 위 말풍선: 치는 동안 어떻게 확정될지 미리 보여 줍니다 (메뉴에서 끌 수 있음).\n" +
@@ -41,7 +40,7 @@ sealed class TrayApp : ApplicationContext
         engine = new Engine(decider, corrections) { Preview = settings.Preview };
         hook = new KeyboardHook(engine)
         {
-            Enabled = settings.Enabled, FlipKey = settings.FlipKey, SkipSensitiveFields = settings.SkipSensitiveFields,
+            Enabled = settings.Enabled, FlipKey = settings.FlipKeyCode, SkipSensitiveFields = settings.SkipSensitiveFields,
         };
         foreach (var app in settings.ExcludedApps) hook.ExcludedApps.Add(app);
         hook.KeyHandled += () => { bubbleDelay.Stop(); bubbleDelay.Start(); };
@@ -56,7 +55,7 @@ sealed class TrayApp : ApplicationContext
             settings.ShownHangulKeyTip = true;
             settings.Save();
             tray!.ShowBalloonTip(6000, "한/영 키는 안 눌러도 돼요",
-                "한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 오른쪽 Ctrl 한 번으로 바꾸세요.", ToolTipIcon.Info);
+                $"한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}로 바꾸세요.", ToolTipIcon.Info);
         };
 
         tray = new NotifyIcon { Visible = true, ContextMenuStrip = new ContextMenuStrip() };
@@ -68,7 +67,7 @@ sealed class TrayApp : ApplicationContext
         if (!settings.ShownWelcome)
         {
             tray.ShowBalloonTip(8000, "한글리쉬 실행 중",
-                "영문 자판으로 두고 그냥 치세요. 틀리면 오른쪽 Ctrl을 한 번 누르세요. 아이콘을 두 번 누르면 설정이 열려요.", ToolTipIcon.Info);
+                $"영문 자판으로 두고 그냥 치세요. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}로 바꿔요. 아이콘을 두 번 누르면 설정이 열려요.", ToolTipIcon.Info);
             settings.ShownWelcome = true;
             settings.Save();
         }
@@ -138,9 +137,22 @@ sealed class TrayApp : ApplicationContext
         settings.Save();
     }
 
-    public void SetFlip(FlipKey key)
+    /// <summary>Waits for the next key press and makes it the flip key; reports the key, or null if cancelled.</summary>
+    public void RecordFlipKey(Action<int?> done)
     {
-        settings.FlipKey = hook.FlipKey = key;
+        var ui = SynchronizationContext.Current!;
+        hook.RecordNextKey = vk => ui.Post(_ =>
+        {
+            if (vk is int key) SetFlip(key);
+            done(vk);
+        }, null);
+    }
+
+    public void CancelRecording() => hook.RecordNextKey = null;
+
+    public void SetFlip(int vk)
+    {
+        settings.FlipKeyCode = hook.FlipKey = vk;
         settings.Save();
     }
 

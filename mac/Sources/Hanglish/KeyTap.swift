@@ -2,7 +2,30 @@ import AppKit
 import Carbon.HIToolbox
 import HanglishCore
 
-enum FlipKey: String { case rightCommand, rightOption }
+/// Which keys can flip a word, and their names for the settings window.
+enum FlipKeys {
+    static let capsLock: Int64 = 57
+    static let defaultKey = capsLock
+    /// Presets shown in settings; any other allowed key can be recorded.
+    static let presets: [Int64] = [57, 54, 61, 62]
+
+    /// Modifier keys and the flag that shows them held down. Caps Lock toggles instead of holding.
+    static let modifierFlags: [Int64: CGEventFlags] = [
+        54: .maskCommand, 55: .maskCommand, 56: .maskShift, 60: .maskShift,
+        58: .maskAlternate, 61: .maskAlternate, 59: .maskControl, 62: .maskControl, 63: .maskSecondaryFn,
+    ]
+
+    static func name(_ code: Int64) -> String {
+        let names: [Int64: String] = [
+            57: "Caps Lock", 54: "오른쪽 ⌘", 55: "왼쪽 ⌘", 61: "오른쪽 ⌥", 58: "왼쪽 ⌥", 62: "오른쪽 Control",
+            59: "왼쪽 Control", 60: "오른쪽 Shift", 56: "왼쪽 Shift", 63: "fn",
+            122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7", 100: "F8", 101: "F9",
+            109: "F10", 103: "F11", 111: "F12", 105: "F13", 107: "F14", 113: "F15", 106: "F16", 64: "F17",
+            79: "F18", 80: "F19", 90: "F20", 102: "영문 키", 104: "한글 키",
+        ]
+        return names[code] ?? "키 \(code)"
+    }
+}
 
 /// Feeds global keystrokes to the Engine through a CGEvent tap and types its output with
 /// posted events. Keys the engine owns are swallowed and re-posted, so their order relative
@@ -22,7 +45,10 @@ final class KeyTap {
 
     let engine: Engine
     var enabled = true
-    var flipKey: FlipKey = .rightCommand
+    /// Key code of the key that flips a word (Caps Lock by default).
+    var flipKey: Int64 = FlipKeys.defaultKey
+    /// Set by the settings window: the next allowed key pressed becomes the flip key (nil on esc).
+    var recordNext: ((Int64?) -> Void)?
     var excludedApps: Set<String> = []
     /// Leave password and verification-code fields alone.
     var skipSensitiveFields = true
@@ -89,9 +115,15 @@ final class KeyTap {
     /// A lone tap of the flip key (right ⌘ by default) flips the word.
     private func flagsChanged(_ event: CGEvent) {
         let code = event.getIntegerValueField(.keyboardEventKeycode)
-        let (key, flag): (Int64, CGEventFlags) = flipKey == .rightCommand
-            ? (Self.rightCommand, .maskCommand) : (Self.rightOption, .maskAlternate)
-        guard code == key else { flipArmed = false; return }
+        if let record = recordNext, code == FlipKeys.capsLock || FlipKeys.modifierFlags[code] != nil {
+            recordNext = nil
+            DispatchQueue.main.async { record(code) }
+            return
+        }
+        guard code == flipKey else { flipArmed = false; return }
+        // Caps Lock reports each press as a toggle, so every change is one press.
+        if code == FlipKeys.capsLock { apply(engine.flip(), original: nil); return }
+        guard let flag = FlipKeys.modifierFlags[code] else { return }
         if event.flags.contains(flag) {
             flipArmed = true
             flipDownAt = Date()
@@ -106,6 +138,20 @@ final class KeyTap {
         flipArmed = false
         let code = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
+        if let record = recordNext {
+            if code == Self.escape { recordNext = nil; DispatchQueue.main.async { record(nil) } }
+            else if Self.letters[code] == nil && ![Self.returnKey, Self.tab, Self.space, Self.delete, Self.keypadEnter].contains(code)
+                        && typed(event) == nil {
+                recordNext = nil
+                DispatchQueue.main.async { record(code) }
+            }
+            return true
+        }
+        if code == flipKey && FlipKeys.modifierFlags[code] == nil && code != FlipKeys.capsLock {
+            // A dedicated key (F13, 영문 키...): flip on press and keep it from doing anything else.
+            apply(engine.flip(), original: nil)
+            return true
+        }
         if !flags.intersection([.maskCommand, .maskControl, .maskAlternate]).isEmpty || paused() {
             engine.reset()
             return false
@@ -116,7 +162,9 @@ final class KeyTap {
                 return false
             }
             if engine.composing.isEmpty { InputSource.selectLatin() }
-            let upper = flags.contains(.maskShift) != flags.contains(.maskAlphaShift)
+            // When Caps Lock is the flip key, its lit state says nothing about letter case.
+            let capsOn = flags.contains(.maskAlphaShift) && flipKey != FlipKeys.capsLock
+            let upper = flags.contains(.maskShift) != capsOn
             return apply(engine.letter(upper ? Character(letter.uppercased()) : letter), original: event)
         }
         switch code {

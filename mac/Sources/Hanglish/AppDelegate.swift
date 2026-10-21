@@ -9,7 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         ABC 입력 소스 그대로 두벌식 자리를 치면 됩니다.
         띄어쓰기·리턴·문장부호를 누르는 순간 한글인지 영어인지 골라서 확정합니다.
 
-        • 오른쪽 ⌘ 한 번: 지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꿉니다.
+        • Caps Lock(기본, 설정에서 바꿀 수 있음): 지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꿉니다.
           바로 한 번 더 누르면 되돌립니다. 바꾼 결과는 같은 앞 단어 뒤에서만 기억하고,
           서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다.
         • 뒤 단어로 언어가 분명해지면 앞의 애매한 단어도 고칩니다 (내 good → so good).
@@ -41,9 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         get { PreviewMode(rawValue: defaults.string(forKey: "preview") ?? "") ?? .hangul }
         set { defaults.set(newValue.rawValue, forKey: "preview"); engine.preview = newValue; engine.reset() }
     }
-    var flipKey: FlipKey {
-        get { FlipKey(rawValue: defaults.string(forKey: "flipKey") ?? "") ?? .rightCommand }
-        set { defaults.set(newValue.rawValue, forKey: "flipKey"); tap.flipKey = newValue }
+    var flipKey: Int64 {
+        get { (defaults.object(forKey: "flipKeyCode") as? NSNumber)?.int64Value ?? FlipKeys.defaultKey }
+        set { defaults.set(NSNumber(value: newValue), forKey: "flipKeyCode"); tap.flipKey = newValue }
     }
     var bubbleStyle: BubbleStyle {
         get { BubbleStyle(rawValue: defaults.string(forKey: "bubbleStyle") ?? "") ?? .white }

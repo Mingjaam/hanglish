@@ -19,15 +19,16 @@ sealed class Settings
 
     public bool Enabled { get; set; } = true;
     public PreviewMode Preview { get; set; } = PreviewMode.Hangul;
-    public FlipKey FlipKey { get; set; } = FlipKey.RightCtrl;
+    /// <summary>Virtual-key code of the flip key.</summary>
+    public int FlipKeyCode { get; set; } = FlipKeys.Default;
     public bool ShownHangulKeyTip { get; set; }
     public bool CaretPreview { get; set; } = true;
     public bool SkipSensitiveFields { get; set; } = true;
     public BubbleStyle BubbleStyle { get; set; } = BubbleStyle.White;
 
-    /// <summary>2: the flip key moved off 한/영, which habit presses before typing Korean.</summary>
+    /// <summary>3: the flip key is any key, 한/영 by default.</summary>
     public int Version { get; set; } = CurrentVersion;
-    const int CurrentVersion = 2;
+    const int CurrentVersion = 3;
     public List<string> ExcludedApps { get; set; } = new();
     public bool ShownWelcome { get; set; }
 
@@ -38,9 +39,9 @@ sealed class Settings
             if (File.Exists(FilePath))
             {
                 var loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath), Json) ?? new();
-                if (!File.ReadAllText(FilePath).Contains("\"Version\""))
+                if (loaded.Version < CurrentVersion || !File.ReadAllText(FilePath).Contains("\"Version\""))
                 {
-                    loaded.FlipKey = FlipKey.RightCtrl;
+                    loaded.FlipKeyCode = FlipKeys.Default;
                     loaded.Version = CurrentVersion;
                     loaded.Save();
                 }

@@ -181,7 +181,7 @@
     <div>
       <span class="eyebrow"><b></b>Windows · macOS · 무료 오픈소스</span>
       <h1>그냥 치세요.<br><span class="ko">한글</span>인지 <span class="en">English</span>인지<br>고르는 건 저희가.</h1>
-      <p class="lead">영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 한글리쉬가 골라 줍니다. 한/영 키를 누를 일이 없어요.</p>
+      <p class="lead">영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 한글리쉬가 골라 줍니다. 한/영 키는 틀렸을 때만 누르면 돼요.</p>
       <div class="cta">
         <a class="btn primary" data-asset="Hanglish-Setup.exe" href="#download">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.4 1.2L21 21V12.5h-9.6zm0-15.4v7.2H21V3z"/></svg>
@@ -242,9 +242,9 @@
         <p>단어를 다 치기 전에 어떻게 확정될지 커서 바로 위에 작게 보여 줍니다.</p>
       </div>
       <div class="card">
-        <div class="chip"><kbd>오른쪽 Ctrl</kbd><span class="arrow">/</span><kbd>오른쪽 ⌘</kbd></div>
+        <div class="chip"><kbd>한/영</kbd><span class="arrow">/</span><kbd>Caps Lock</kbd></div>
         <h3>틀리면 키 하나</h3>
-        <p>방금 단어를 반대 언어로 바꾸고, 같은 앞 단어 뒤에서 기억합니다.</p>
+        <p>Windows는 한/영 키, macOS는 Caps Lock으로 방금 단어를 바꿉니다. 키는 설정에서 바꿀 수 있어요.</p>
       </div>
       <div class="card">
         <div class="chip"><span>흰색</span><span class="arrow">·</span><span>어두운색</span><span class="arrow">·</span><span>간단히</span></div>
@@ -285,7 +285,7 @@
       <div class="num"><strong>100%</strong><span>Shift 실수가 섞인 문장 600개</span></div>
       <div class="num"><strong>99.8%</strong><span>문맥 없는 영어 단어 800개</span></div>
     </div>
-    <p class="note">Tatoeba 문장(CC BY 2.0 FR)을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 똑같이 나온 비율입니다. 섞인 문장, 이름, Shift 실수는 자동으로 만든 시험용 데이터입니다. 문맥 없이 <span class="mono">go</span>만 치면 <span class="ko">해</span>가 되는 것처럼 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키 한 번이면 됩니다.</p>
+    <p class="note">Tatoeba 문장(CC BY 2.0 FR)을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 똑같이 나온 비율입니다. 섞인 문장, 이름, Shift 실수는 자동으로 만든 시험용 데이터입니다. 문맥 없이 <span class="mono">go</span>만 치면 <span class="ko">해</span>가 되는 것처럼 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키(Windows 한/영, macOS Caps Lock) 한 번이면 됩니다.</p>
   </div>
 </section>
 
@@ -363,7 +363,7 @@
   /** One demo screen. Both skins replay the same engine frames; only the chrome and flip key differ. */
   function buildDemo(stage) {
     const mac = stage.dataset.demo === "mac";
-    const flipLabel = mac ? "오른쪽 ⌘" : "오른쪽 Ctrl";
+    const flipLabel = mac ? "Caps Lock" : "한/영";
     stage.innerHTML = `
       <div class="caption"></div><div class="os-label">${mac ? "macOS" : "WINDOWS"}</div>
       <div class="win">
@@ -412,7 +412,7 @@
       bubble.style.top = Math.max(4, c.top - d.top - bubble.offsetHeight - 4) + "px";
       bubble.style.opacity = 1;
     }
-    const label = text => mac ? text.replace("오른쪽 Ctrl", "오른쪽 ⌘") : text;
+    const label = text => mac ? text.replace("한/영 키", "Caps Lock") : text;
 
     return {
       frame(si, st) {

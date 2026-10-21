@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Hanglish</AssemblyName>
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\assets\Hanglish.ico</ApplicationIcon>
