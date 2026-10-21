@@ -67,6 +67,15 @@ jobs:
           if [ "${{ github.ref_type }}" = "tag" ]; then version="${GITHUB_REF_NAME#v}"; fi
           mkdir -p out
           sh mac/scripts/bundle.sh "$version" "$PWD/out"
+      - name: Check disk image layout
+        run: |
+          # The custom window needs its background image and the Finder layout file inside the image.
+          hdiutil attach -nobrowse -readonly -mountpoint /tmp/hanglish-dmg out/Hanglish.dmg
+          ls -la /tmp/hanglish-dmg /tmp/hanglish-dmg/.background
+          test -f /tmp/hanglish-dmg/.DS_Store
+          test -L /tmp/hanglish-dmg/Applications
+          test -d /tmp/hanglish-dmg/Hanglish.app
+          hdiutil detach /tmp/hanglish-dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos
