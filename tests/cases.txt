@@ -1,0 +1,35 @@
+# 한국어 일상 문장
+안녕하세요 오늘 날씨가 정말 좋네요
+내일 회의는 몇 시에 시작하나요
+저는 지금 집에 가는 중이에요
+이 문제는 생각보다 어렵지 않아
+밥 먹었어 나는 아직 안 먹었어
+그래서 결국 어떻게 됐는데
+고마워 다음에 또 보자
+논문 초안을 금요일까지 보내 주세요
+실험 결과가 예상보다 좋았습니다
+배고프다 라면 먹을까
+ㅋㅋㅋ 진짜 웃기다
+사랑해 우리 엄마
+# 영어 문장
+hello world
+this is a test of the system
+i will send you the report tomorrow
+please check the latest version on github
+the quick brown fox jumps over the lazy dog
+can you review my pull request
+we need more data for training
+thank you so much
+see you later
+deep learning model with attention
+# 섞어 쓰기
+github에서 코드를 받았어요
+python으로 스크립트를 짰어
+이번 주 meeting은 취소됐어요
+오늘 deadline이라서 바빠
+google에 검색해 봐
+zoom 링크 보내 줄게
+이건 bug가 아니라 feature야
+model을 다시 학습했어요
+email 확인 부탁드려요
+youtube 영상 봤어

@@ -1,0 +1,12 @@
+bin/
+obj/
+out/
+dist/
+share/
+*.user
+.vs/
+# Swift
+mac/.build/
+mac/.swiftpm/
+# Generated from src/Hanglish.Core/Resources/lexicon.tsv.gz by mac/scripts/prepare.sh
+mac/Sources/HanglishCore/Resources/lexicon.tsv

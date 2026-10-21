@@ -1,0 +1,2 @@
+?shot rlaalswo	bubble-ko.png
+?shot hello	bubble-en.png

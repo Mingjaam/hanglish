@@ -1,0 +1,96 @@
+name: build
+
+# Every push builds and tests both apps. A tag like v0.2.0 also publishes a GitHub Release
+# with Hanglish-windows-x64.zip and Hanglish-macos.zip, which the website's buttons download.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Engine tests
+        run: dotnet run --project src/Hanglish.Eval -c Release -- --engine
+      - name: Accuracy on held-out sentences
+        run: dotnet run --project src/Hanglish.Eval -c Release --no-build -- --corpus tests/corpus/ko_test.txt tests/corpus/en_test.txt tests/corpus/mixed_test.txt tests/corpus/name_test.txt
+      - name: Publish
+        shell: pwsh
+        run: |
+          $version = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}".TrimStart("v") } else { "0.0.0" }
+          dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=none -p:Version=$version -o out/Hanglish
+          Copy-Item README.md out/Hanglish/
+          Compress-Archive -Path out/Hanglish/* -DestinationPath out/Hanglish-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/Hanglish-windows-x64.zip
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare lexicon
+        run: sh mac/scripts/prepare.sh
+      - name: Engine tests (including parity with the Windows engine)
+        working-directory: mac
+        run: swift test
+      - name: Build app
+        run: |
+          version=0.0.0
+          if [ "${{ github.ref_type }}" = "tag" ]; then version="${GITHUB_REF_NAME#v}"; fi
+          mkdir -p out
+          sh mac/scripts/bundle.sh "$version" "$PWD/out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: out/Hanglish-macos.zip
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/Hanglish-windows-x64.zip
+            out/Hanglish-macos.zip
+          generate_release_notes: true
+
+  site:
+    if: github.ref == 'refs/heads/main' || github.ref_type == 'tag'
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한글리쉬 Hanglish</title>
+<meta name="description" content="한/영 키 없이 그냥 치면 한글과 영어를 알아서 골라 주는 Windows·macOS 입력 도우미">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --ink: #0c0e17; --panel: #141726; --panel-2: #1b1f33; --line: #272c44;
+    --text: #eef0f7; --muted: #9aa1bb; --ko: #ff6b4a; --en: #38bdf8;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font: 16px/1.65 "IBM Plex Sans KR", system-ui, sans-serif; overflow-x: hidden; }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .ko { color: var(--ko); } .en { color: var(--en); }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(12, 14, 23, .72); border-bottom: 1px solid rgba(39, 44, 68, .6); }
+  nav .wrap { display: flex; align-items: center; height: 64px; gap: 28px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+  .brand img { width: 32px; height: 32px; }
+  nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+  nav .links a { text-decoration: none; color: var(--muted); }
+  nav .links a:hover { color: var(--text); }
+
+  .hero { padding: 72px 0 40px; position: relative; }
+  .hero::before { content: ""; position: absolute; inset: -200px 0 auto; height: 700px; pointer-events: none;
+    background: radial-gradient(500px 300px at 15% 40%, rgba(255,107,74,.16), transparent 70%), radial-gradient(520px 320px at 85% 30%, rgba(56,189,248,.14), transparent 70%); }
+  .hero .wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center; position: relative; }
+  .hero .wrap > * { min-width: 0; }
+  .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; }
+  .eyebrow b { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(90deg, var(--ko) 50%, var(--en) 50%); }
+  h1 { font-family: "Black Han Sans", sans-serif; font-weight: 400; font-size: clamp(36px, 6vw, 72px); line-height: 1.08; margin: 18px 0 18px; letter-spacing: -.5px; }
+  .lead { font-size: 18px; color: var(--muted); max-width: 30em; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid var(--line); background: var(--panel); transition: transform .15s, border-color .15s; }
+  .btn:hover { transform: translateY(-2px); border-color: #3b4266; }
+  .btn.primary { background: var(--text); color: var(--ink); border-color: var(--text); }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .meta { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+  /* demo stage (Windows and macOS skins share everything but the window chrome) */
+  .stage { position: relative; padding-top: 46px; }
+  .caption { position: absolute; left: 0; top: 0; z-index: 2; background: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px; font-size: 14px; font-weight: 700; }
+  .caption::before { content: "● "; color: var(--ko); }
+  .os-label { position: absolute; right: 0; top: 6px; font: 700 12px "JetBrains Mono"; color: var(--muted); letter-spacing: 1px; }
+  .win { border-radius: 12px; overflow: hidden; border: 1px solid #2f3552; background: #f3f4f8; color: #1a1c26; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+  .bar { height: 38px; display: flex; align-items: center; padding-left: 14px; gap: 10px; font-size: 13px; color: #3b3f52; }
+  .skin-win .bar { background: linear-gradient(90deg, #e9ecf5, #f1eef5); }
+  .skin-win .doc { width: 14px; height: 16px; border: 1.5px solid #5d6380; border-radius: 2px; }
+  .skin-win .ctl { margin-left: auto; display: flex; }
+  .skin-win .ctl span { width: 46px; height: 38px; display: grid; place-items: center; }
+  .skin-win .ctl svg { width: 10px; height: 10px; stroke: #3b3f52; stroke-width: 1.2; fill: none; }
+  .skin-mac .win { border-radius: 14px; }
+  .skin-mac .bar { background: #ecedf1; justify-content: center; position: relative; border-bottom: 1px solid #dcdee6; }
+  .skin-mac .lights { position: absolute; left: 14px; display: flex; gap: 8px; }
+  .skin-mac .lights i { width: 12px; height: 12px; border-radius: 50%; background: #c9ccd6; }
+  .menu { display: flex; gap: 18px; padding: 6px 16px; font-size: 13px; color: #5b6075; border-bottom: 1px solid #e2e4ec; background: #fafbfd; }
+  .doc-area { position: relative; height: 230px; padding: 18px 22px; background: #fff; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+  .field { font: 22px/1.55 "IBM Plex Sans KR", sans-serif; white-space: pre-wrap; word-break: break-all; }
+  .caret { display: inline-block; width: 2px; height: 1.15em; background: #1a1c26; vertical-align: -0.2em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  /* the caret preview, drawn like the app's white pill */
+  .bubble { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; background: #fff; border: 1px solid #e4e7ef; color: #191b26; font: 700 14px "IBM Plex Sans KR"; white-space: nowrap; box-shadow: 0 4px 14px rgba(20,24,45,.14); transition: left .12s, top .12s, opacity .15s; pointer-events: none; }
+  .bubble em { font: 700 10px "IBM Plex Sans KR"; font-style: normal; padding: 1px 6px; border-radius: 99px; color: var(--accent); background: var(--tint); }
+  .status { display: flex; justify-content: space-between; padding: 5px 16px; font-size: 12px; color: #6a6f86; background: #f3f4f8; border-top: 1px solid #e2e4ec; }
+  .skin-mac .status { display: none; }
+
+  .kbd { margin: 22px auto 0; display: grid; gap: 6px; width: fit-content; }
+  .row { display: flex; gap: 6px; }
+  .row:nth-child(2) { margin-left: 18px; } .row:nth-child(3) { margin-left: 40px; }
+  .key { width: 40px; height: 44px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); border-bottom-width: 3px; position: relative; font-family: "JetBrains Mono"; transition: transform .08s, background .08s, border-color .08s; }
+  .key .l { position: absolute; left: 6px; top: 3px; font-size: 12px; color: var(--en); }
+  .key .j { position: absolute; right: 6px; bottom: 3px; font: 700 13px "IBM Plex Sans KR"; color: var(--ko); }
+  .key.wide { width: 74px; } .key.space { width: 240px; } .key .w { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11px; color: var(--muted); text-align: center; line-height: 1.2; }
+  .key.on { transform: translateY(2px); border-bottom-width: 1px; background: #262c48; border-color: #4a5380; }
+  .key.flip.on { background: rgba(255,107,74,.25); border-color: var(--ko); }
+
+  section { padding: 96px 0; }
+  .kicker { font: 700 13px "JetBrains Mono"; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  h2 { font-family: "Black Han Sans"; font-weight: 400; font-size: clamp(30px, 4.4vw, 50px); line-height: 1.15; margin: 10px 0 18px; }
+  .sub { color: var(--muted); max-width: 38em; font-size: 17px; }
+
+  .both { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 48px; }
+  .both > * { min-width: 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 44px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+  .card h3 { margin: 14px 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .chip { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 7px; font-family: "JetBrains Mono"; font-size: 13px; background: var(--panel-2); border-radius: 10px; padding: 8px 11px; }
+  .arrow { color: var(--muted); }
+  .tag { font: 700 11px "IBM Plex Sans KR"; padding: 1px 7px; border-radius: 99px; }
+  .tag.k { background: rgba(255,107,74,.15); color: var(--ko); } .tag.e { background: rgba(56,189,248,.15); color: var(--en); }
+  .strike { text-decoration: line-through; color: var(--muted); }
+  .mini-pill { display: inline-flex; align-items: center; gap: 5px; background: #fff; color: #191b26; border-radius: 99px; padding: 2px 9px; font: 700 13px "IBM Plex Sans KR"; }
+
+  .numbers { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 44px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .num { padding: 28px 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: linear-gradient(180deg, var(--panel), var(--ink)); }
+  .num:nth-child(3n) { border-right: 0; } .num:nth-last-child(-n+3) { border-bottom: 0; }
+  .num strong { display: block; font: 400 48px/1 "Black Han Sans"; }
+  .num span { color: var(--muted); font-size: 14px; }
+  .note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 44px; counter-reset: step; }
+  .flow div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; font-size: 15px; color: var(--muted); }
+  .flow div::before { counter-increment: step; content: "0" counter(step); display: block; font: 700 13px "JetBrains Mono"; color: var(--text); margin-bottom: 8px; }
+  .flow b { color: var(--text); }
+
+  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 44px; }
+  .dl { border: 1px solid var(--line); border-radius: var(--radius); padding: 30px; background: var(--panel); }
+  .dl h3 { font-family: "Black Han Sans"; font-weight: 400; font-size: 30px; margin: 0 0 4px; display: flex; align-items: center; gap: 12px; }
+  .dl h3 svg { width: 28px; height: 28px; }
+  .dl ul { padding-left: 18px; color: var(--muted); font-size: 15px; }
+
+  .install { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  .install h4 { margin: 0 0 4px; font-size: 16px; }
+  .steps { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+  .steps li { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .steps li > span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 700 13px "JetBrains Mono"; background: var(--panel-2); }
+  .steps p { margin: 0; color: var(--muted); font-size: 14px; } .steps b { color: var(--text); }
+  kbd { font: 600 12px "JetBrains Mono"; background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; color: var(--text); }
+
+  details { border-bottom: 1px solid var(--line); padding: 18px 0; max-width: 820px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 17px; list-style: none; display: flex; justify-content: space-between; }
+  summary::after { content: "+"; color: var(--muted); font-family: "JetBrains Mono"; }
+  details[open] summary::after { content: "−"; }
+  details p { color: var(--muted); margin: 10px 0 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 0 60px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 920px) {
+    .hero .wrap, .downloads, .install, .both { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .numbers { grid-template-columns: 1fr 1fr; }
+    .num:nth-child(3n) { border-right: 1px solid var(--line); } .num:nth-child(2n) { border-right: 0; }
+    .num:nth-last-child(-n+3) { border-bottom: 1px solid var(--line); } .num:nth-last-child(-n+2) { border-bottom: 0; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 0 16px; }
+    nav .links a:not(.gh) { display: none; }
+    .grid, .flow { grid-template-columns: 1fr; }
+    .key { width: 26px; height: 34px; } .key .l { font-size: 10px; left: 3px; } .key .j { font-size: 11px; right: 3px; }
+    .key.wide { width: 50px; } .key.space { width: 150px; } .key .w { font-size: 9px; }
+    .row:nth-child(2) { margin-left: 10px; } .row:nth-child(3) { margin-left: 22px; }
+    .kbd { gap: 4px; } .row { gap: 4px; }
+    .field { font-size: 18px; }
+    .doc-area { height: 190px; padding: 14px 16px; }
+    .skin-win .ctl span { width: 34px; }
+    section { padding: 72px 0; }
+  }
+  body.shot nav, body.shot .hero, body.shot section:not(#demos), body.shot footer, body.shot #demos .wrap > :not(.both) { display: none; }
+  body.shot #demos { padding: 20px 0; } body.shot .both { margin: 0; grid-template-columns: 1fr; } body.shot .bubble { transition: none; }
+  @media (prefers-reduced-motion: reduce) { .caret { animation: none; } .btn, .key, .bubble { transition: none; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="icon.svg" alt="">한글리쉬</a>
+    <div class="links">
+      <a href="#demos">동작</a><a href="#features">기능</a><a href="#accuracy">정확도</a><a href="#download">다운로드</a><a href="#faq">FAQ</a>
+      <a class="gh" data-repo-link href="#">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow"><b></b>Windows · macOS · 무료 오픈소스</span>
+      <h1>그냥 치세요.<br><span class="ko">한글</span>인지 <span class="en">English</span>인지<br>고르는 건 저희가.</h1>
+      <p class="lead">영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 한글리쉬가 골라 줍니다. 한/영 키를 누를 일이 없어요.</p>
+      <div class="cta">
+        <a class="btn primary" data-asset="Hanglish-windows-x64.zip" href="#download">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.4 1.2L21 21V12.5h-9.6zm0-15.4v7.2H21V3z"/></svg>
+          <span>Windows용 받기</span>
+        </a>
+        <a class="btn primary" data-asset="Hanglish-macos.zip" href="#download">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 2.9-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-3.8zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>
+          <span>macOS용 받기</span>
+        </a>
+      </div>
+      <p class="meta">압축 풀고 바로 실행 · 인터넷 연결 없이 동작 · 입력 내용 저장 안 함</p>
+    </div>
+    <div class="stage skin-win" data-demo="win" aria-label="Windows에서 한글리쉬가 동작하는 모습"></div>
+  </div>
+</header>
+
+<section id="demos" style="padding-top:40px">
+  <div class="wrap">
+    <div class="kicker">On both</div>
+    <h2>Windows에서도, macOS에서도 똑같이</h2>
+    <p class="sub">같은 판단 엔진이 두 운영체제에서 똑같이 동작합니다. 아래 화면은 실제 엔진이 키마다 보여 준 결과를 그대로 재생한 것이에요.</p>
+    <div class="both">
+      <div class="stage skin-win" data-demo="win"></div>
+      <div class="stage skin-mac" data-demo="mac"></div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">Features</div>
+    <h2>자판은 하나, 언어는 둘.</h2>
+    <p class="sub">치는 동안은 한글로 보이다가, 띄어쓰기·엔터·문장부호를 누르면 그 단어에 맞는 글자로 확정됩니다.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="chip"><span>rlaalswo</span><span class="arrow">→</span><span>김민재</span></div>
+        <h3>사람 이름도 한글로</h3>
+        <p>사전에 없는 이름도 한글 음절로 딱 맞아떨어지면 한글로 고릅니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span>githubdptj</span><span class="arrow">→</span><span><span class="en">github</span><span class="ko">에서</span></span></div>
+        <h3>섞어 써도 그대로</h3>
+        <p>영어 단어 뒤에 붙는 조사는 한글로. 띄어쓰기 없이 이어 쳐도 나눠 줍니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span class="strike">내</span><span>so</span><span>good</span></div>
+        <h3>뒤를 보고 앞을 고쳐요</h3>
+        <p>양쪽 다 말이 되는 짧은 단어는 다음 단어로 언어가 분명해지면 함께 바로잡습니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span>dlT<b class="ko">E</b>k</span><span class="arrow">→</span><span>있다</span></div>
+        <h3>Shift 실수도 문맥으로</h3>
+        <p>ㅆ을 치다 Shift가 다음 글자까지 눌려도, 말이 되는 쪽을 고릅니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span class="mini-pill">hello <span class="tag e">EN</span></span></div>
+        <h3>커서 위 미리보기</h3>
+        <p>단어를 다 치기 전에 어떻게 확정될지 커서 바로 위에 작게 보여 줍니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><kbd>오른쪽 Ctrl</kbd><span class="arrow">/</span><kbd>오른쪽 ⌘</kbd></div>
+        <h3>틀리면 키 하나</h3>
+        <p>방금 단어를 반대 언어로 바꾸고, 같은 앞 단어 뒤에서 기억합니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span>흰색</span><span class="arrow">·</span><span>어두운색</span><span class="arrow">·</span><span>간단히</span></div>
+        <h3>설정 창에서 내 맘대로</h3>
+        <p>말풍선 디자인, 뒤집기 키, 쓰지 않을 앱, 저장된 교정을 한곳에서 바꿉니다.</p>
+      </div>
+      <div class="card">
+        <div class="chip"><span>인터넷</span><span class="arrow">✕</span><span>기록</span><span class="arrow">✕</span></div>
+        <h3>내 컴퓨터 안에서만</h3>
+        <p>판단은 PC 안의 작은 사전·확률 모델이 합니다. 입력 내용을 보내거나 저장하지 않아요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2>한 번 친 키, 두 가지로 읽기</h2>
+    <div class="flow">
+      <div><b>키를 그대로 받아요</b><br>영문 자판에서 친 <span class="mono">dkssud</span>를 그대로 둡니다.</div>
+      <div><b>여러 가지로 읽어요</b><br>영어 <span class="mono en">dkssud</span>, 한글 <span class="ko">안녕</span>, 영어+조사, Shift 실수를 뺀 읽기까지.</div>
+      <div><b>점수를 매겨요</b><br>단어 빈도 사전, 키 순서 확률, 앞 문장의 언어를 함께 봅니다.</div>
+      <div><b>확정해요</b><br>가장 그럴듯한 쪽으로 바꿔 쓰고, 애매하면 다음 단어를 기다립니다.</div>
+    </div>
+  </div>
+</section>
+
+<section id="accuracy" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">Accuracy</div>
+    <h2>학습에 쓰지 않은 문장으로 쟀어요</h2>
+    <div class="numbers">
+      <div class="num"><strong class="ko">100%</strong><span>한국어 문장 3,000개</span></div>
+      <div class="num"><strong class="en">100%</strong><span>영어 문장 3,000개</span></div>
+      <div class="num"><strong>99.1%</strong><span>영어 섞인 문장 800개</span></div>
+      <div class="num"><strong>99.1%</strong><span>사람 이름 800개</span></div>
+      <div class="num"><strong>100%</strong><span>Shift 실수가 섞인 문장 600개</span></div>
+      <div class="num"><strong>99.8%</strong><span>문맥 없는 영어 단어 800개</span></div>
+    </div>
+    <p class="note">Tatoeba 문장(CC BY 2.0 FR)을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 똑같이 나온 비율입니다. 섞인 문장, 이름, Shift 실수는 자동으로 만든 시험용 데이터입니다. 문맥 없이 <span class="mono">go</span>만 치면 <span class="ko">해</span>가 되는 것처럼 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키 한 번이면 됩니다.</p>
+  </div>
+</section>
+
+<section id="download" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">Download</div>
+    <h2>받아서 바로 쓰세요</h2>
+    <div class="downloads">
+      <div class="dl">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.4 1.2L21 21V12.5h-9.6zm0-15.4v7.2H21V3z"/></svg>Windows</h3>
+        <ul><li>Windows 10 · 11 (64비트)</li><li>설치 없이 압축만 풀고 실행</li><li>작업 표시줄 트레이에 아이콘</li></ul>
+        <a class="btn primary" data-asset="Hanglish-windows-x64.zip" href="#">Windows용 받기 (.zip)</a>
+      </div>
+      <div class="dl">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 2.9-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-3.8zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>macOS</h3>
+        <ul><li>macOS 13 Ventura 이상</li><li>Apple 실리콘 · Intel 모두 지원</li><li>메뉴 막대에 아이콘</li></ul>
+        <a class="btn primary" data-asset="Hanglish-macos.zip" href="#">macOS용 받기 (.zip)</a>
+      </div>
+    </div>
+    <div class="install">
+      <div>
+        <h4>Windows 설치</h4>
+        <ol class="steps">
+          <li><span>1</span><div><b>압축 풀기</b><p>받은 zip을 원하는 폴더에 풉니다.</p></div></li>
+          <li><span>2</span><div><b>Hanglish.exe 실행</b><p>"Windows의 PC 보호" 창이 뜨면 <b>추가 정보 → 실행</b>. 서명 인증서가 없는 무료 프로그램이라 뜨는 창입니다.</p></div></li>
+          <li><span>3</span><div><b>영문 상태로 그냥 치기</b><p>트레이 아이콘을 두 번 누르면 설정이 열립니다. "Windows 시작할 때 실행"을 켜 두면 편해요.</p></div></li>
+        </ol>
+      </div>
+      <div>
+        <h4>macOS 설치</h4>
+        <ol class="steps">
+          <li><span>1</span><div><b>응용 프로그램으로 옮기기</b><p>압축을 풀고 Hanglish.app을 응용 프로그램 폴더로 옮깁니다.</p></div></li>
+          <li><span>2</span><div><b>처음 한 번 열기 허용</b><p>안내가 나오면 시스템 설정 → 개인정보 보호 및 보안에서 <b>그래도 열기</b>.</p></div></li>
+          <li><span>3</span><div><b>손쉬운 사용 허용</b><p>시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용에서 한글리쉬를 켭니다.</p></div></li>
+          <li><span>4</span><div><b>ABC 입력 소스로 그냥 치기</b><p>메뉴 막대 아이콘 → 설정 열기에서 원하는 대로 바꾸세요.</p></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">FAQ</div>
+    <h2>자주 묻는 질문</h2>
+    <details><summary>입력한 내용이 어디로 가나요?</summary><p>아무 데도 가지 않습니다. 판단은 컴퓨터 안에서만 하고, 인터넷 연결도 쓰지 않아요. 저장하는 것은 직접 고친 단어 목록과 설정뿐입니다.</p></details>
+    <details><summary>비밀번호를 칠 때는요?</summary><p>macOS는 비밀번호 칸(보안 입력)에서 자동으로 멈춥니다. Windows는 일반 프로그램의 비밀번호 칸은 건너뛰지만 웹 브라우저의 비밀번호 칸은 알아채지 못하니, 그때는 설정에서 잠시 꺼 주세요.</p></details>
+    <details><summary>게임이나 vim처럼 글자 키를 단축키로 쓰는 프로그램은요?</summary><p>메뉴의 "○○에서는 쓰지 않기"나 설정 창의 "쓰지 않는 앱"에 넣으면 그 프로그램에서만 꺼집니다.</p></details>
+    <details><summary>백신이 막아요.</summary><p>한글리쉬는 키 입력을 받아 글자를 바꿔 쓰기 때문에 일부 백신이 의심할 수 있습니다. 소스 코드가 모두 공개되어 있으니 확인한 뒤 예외로 등록해 주세요.</p></details>
+    <details><summary>관리자 권한으로 실행한 창에서는 안 돼요.</summary><p>Windows 보안 정책상 일반 프로그램은 관리자 권한 창에 글자를 보낼 수 없습니다. 그런 창에서는 평소 입력기를 쓰거나, 한글리쉬도 관리자 권한으로 실행해 주세요.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 한글리쉬 · MIT License</span>
+    <span>단어 빈도: FrequencyWords · wordfreq (CC BY-SA 4.0)</span>
+    <a data-repo-link href="#">소스 코드</a>
+  </div>
+</footer>
+
+<script src="frames.js"></script>
+<script>
+  // The GitHub repository that hosts the releases; download buttons point at its latest release.
+  const REPO = "Mingjaam/hanglish";
+  const releaseBase = `https://github.com/${REPO}/releases/latest/download/`;
+  document.querySelectorAll("[data-asset]").forEach(a => a.href = releaseBase + a.dataset.asset);
+  document.querySelectorAll("[data-repo-link]").forEach(a => a.href = `https://github.com/${REPO}`);
+
+  const jamo = { q:"ㅂ", w:"ㅈ", e:"ㄷ", r:"ㄱ", t:"ㅅ", y:"ㅛ", u:"ㅕ", i:"ㅑ", o:"ㅐ", p:"ㅔ", a:"ㅁ", s:"ㄴ", d:"ㅇ", f:"ㄹ", g:"ㅎ", h:"ㅗ", j:"ㅓ", k:"ㅏ", l:"ㅣ", z:"ㅋ", x:"ㅌ", c:"ㅊ", v:"ㅍ", b:"ㅠ", n:"ㅜ", m:"ㅡ" };
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  /** One demo screen. Both skins replay the same engine frames; only the chrome and flip key differ. */
+  function buildDemo(stage) {
+    const mac = stage.dataset.demo === "mac";
+    const flipLabel = mac ? "오른쪽 ⌘" : "오른쪽 Ctrl";
+    stage.innerHTML = `
+      <div class="caption"></div><div class="os-label">${mac ? "macOS" : "WINDOWS"}</div>
+      <div class="win">
+        ${mac
+          ? `<div class="bar"><span class="lights"><i></i><i></i><i></i></span><span>메모</span></div>`
+          : `<div class="bar"><span class="doc"></span><span>메모 - 제목 없음</span><div class="ctl">
+               <span><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></span>
+               <span><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg></span>
+               <span><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0 0 10"/></svg></span></div></div>
+             <div class="menu"><span>파일</span><span>편집</span><span>보기</span></div>`}
+        <div class="doc-area"><div class="field"><span class="caret"></span></div>
+          <div class="bubble" style="opacity:0"><span class="b-text"></span><em></em></div></div>
+        <div class="status"><span>한글리쉬 켜짐</span><span>UTF-8</span></div>
+      </div>
+      <div class="kbd" aria-hidden="true"></div>`;
+    const kbd = stage.querySelector(".kbd"), keys = {};
+    [["qwertyuiop"], ["asdfghjkl", "Enter"], ["zxcvbnm"], ["Space", "Ctrl"]].forEach(([letters, extra]) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      if (letters === "Space") {
+        row.style.marginLeft = "0";
+        row.style.justifyContent = "flex-end";
+        row.innerHTML = `<div class="key space" data-k="Space"><span class="w">Space</span></div><div class="key wide flip" data-k="Ctrl"><span class="w">${flipLabel}</span></div>`;
+      } else {
+        for (const c of letters) row.innerHTML += `<div class="key" data-k="${c}"><span class="l">${c}</span><span class="j">${jamo[c]}</span></div>`;
+        if (extra) row.innerHTML += `<div class="key wide" data-k="Enter"><span class="w">${mac ? "Return" : "Enter"}</span></div>`;
+      }
+      kbd.appendChild(row);
+    });
+    kbd.querySelectorAll("[data-k]").forEach(k => keys[k.dataset.k] = k);
+    const field = stage.querySelector(".field"), caret = stage.querySelector(".caret");
+    const bubble = stage.querySelector(".bubble"), doc = stage.querySelector(".doc-area");
+    const caption = stage.querySelector(".caption");
+
+    function render(text, guess) {
+      field.textContent = text;
+      field.appendChild(caret);
+      if (!guess) { bubble.style.opacity = 0; return; }
+      bubble.querySelector(".b-text").textContent = guess.text;
+      const tag = bubble.querySelector("em");
+      tag.textContent = guess.korean ? "한" : "EN";
+      bubble.style.setProperty("--accent", guess.korean ? "#e8573a" : "#1696d4");
+      bubble.style.setProperty("--tint", guess.korean ? "#ffede8" : "#e4f5fe");
+      const c = caret.getBoundingClientRect(), d = doc.getBoundingClientRect();
+      bubble.style.left = Math.min(Math.max(8, c.left - d.left - 8), doc.clientWidth - bubble.offsetWidth - 8) + "px";
+      bubble.style.top = Math.max(4, c.top - d.top - bubble.offsetHeight - 4) + "px";
+      bubble.style.opacity = 1;
+    }
+    const label = text => mac ? text.replace("오른쪽 Ctrl", "오른쪽 ⌘") : text;
+
+    return {
+      frame(si, st) {
+        const scene = window.HANGLISH_FRAMES[si], step = scene.steps[st];
+        caption.textContent = label(scene.caption);
+        Object.values(keys).forEach(k => k.classList.remove("on"));
+        keys[step.key]?.classList.add("on");
+        requestAnimationFrame(() => render(step.field, step.bubble));
+      },
+      async play(offset = 0) {
+        const scenes = window.HANGLISH_FRAMES || [];
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches || !scenes.length) {
+          const last = scenes.at(-1)?.steps.at(-1);
+          caption.textContent = label(scenes.at(-1)?.caption ?? "");
+          render(last ? last.field : "", null);
+          return;
+        }
+        await sleep(offset);
+        for (;;) {
+          for (const scene of scenes) {
+            caption.textContent = label(scene.caption);
+            await sleep(700);
+            for (const step of scene.steps) {
+              const key = keys[step.key];
+              if (step.key === "Ctrl") await sleep(500);
+              key?.classList.add("on");
+              render(step.field, step.bubble);
+              await sleep(step.key === "Ctrl" ? 260 : 140);
+              key?.classList.remove("on");
+              await sleep(step.key.length > 1 ? 220 : 30);
+            }
+            await sleep(1500);
+          }
+          await sleep(1500);
+        }
+      },
+    };
+  }
+
+  const stages = [...document.querySelectorAll("[data-demo]")];
+  const demos = stages.map(buildDemo);
+  // ?shot=<win|mac>.<scene>.<step> renders one frame of the demos section alone, for the README GIFs.
+  const shot = new URLSearchParams(location.search).get("shot");
+  if (shot) {
+    const [os, si, st] = shot.split(".");
+    document.body.classList.add("shot");
+    const target = stages.find(s => s.closest("#demos") && s.dataset.demo === os);
+    stages.filter(s => s.closest("#demos") && s !== target).forEach(s => s.hidden = true);
+    demos[stages.indexOf(target)].frame(+si, +st);
+  } else {
+    demos.forEach((d, i) => d.play(i * 2300));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <!-- macOS menu bar template image: black keycap with the face cut out; macOS tints it. -->
+  <path fill-rule="evenodd" fill="#000" d="M10 4h16a7 7 0 0 1 7 7v13a7 7 0 0 1-7 7H10a7 7 0 0 1-7-7V11a7 7 0 0 1 7-7z
+    M13.5 13.2a2.3 2.7 0 1 0 0.01 0z M22.5 13.2a2.3 2.7 0 1 0 0.01 0z
+    M14.2 21.2a1.2 1.2 0 0 0-1 1.9 6 6 0 0 0 9.6 0 1.2 1.2 0 0 0-1.9-1.4 3.6 3.6 0 0 1-5.8 0 1.2 1.2 0 0 0-0.9-0.5z"/>
+</svg>

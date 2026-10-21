@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Hanglish app icon: a smiling keycap carrying both legends, 한 (coral) and a (sky). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a52"/>
+      <stop offset=".5" stop-color="#ff8f8a"/>
+      <stop offset="1" stop-color="#4cc3fa"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f1f3fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <!-- keycap side, then top -->
+  <rect x="92" y="122" width="328" height="306" rx="78" fill="#d4d9ea"/>
+  <rect x="92" y="96" width="328" height="300" rx="78" fill="url(#cap)"/>
+  <!-- legends -->
+  <text x="148" y="190" font-family="Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-weight="800" font-size="62" fill="#ff6b4a">한</text>
+  <text x="318" y="186" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-weight="800" font-size="66" fill="#29b4f2">a</text>
+  <!-- face -->
+  <ellipse cx="206" cy="268" rx="21" ry="25" fill="#1d2033"/>
+  <ellipse cx="306" cy="268" rx="21" ry="25" fill="#1d2033"/>
+  <circle cx="213" cy="259" r="7" fill="#fff"/>
+  <circle cx="313" cy="259" r="7" fill="#fff"/>
+  <ellipse cx="166" cy="312" rx="24" ry="14" fill="#ff9f9f" opacity=".7"/>
+  <ellipse cx="346" cy="312" rx="24" ry="14" fill="#ff9f9f" opacity=".7"/>
+  <path d="M232 312 q24 26 48 0" fill="none" stroke="#1d2033" stroke-width="12" stroke-linecap="round"/>
+</svg>

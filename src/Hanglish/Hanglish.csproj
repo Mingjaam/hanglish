@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>Hanglish</AssemblyName>
+    <Version>0.2.0</Version>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\Hanglish.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\tray.ico" LogicalName="tray.ico" />
+    <EmbeddedResource Include="..\..\assets\Hanglish.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="..\..\assets\png\icon-128.png" LogicalName="icon-128.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hanglish.Core\Hanglish.Core.csproj" />
+  </ItemGroup>
+</Project>

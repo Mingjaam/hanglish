@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- 16-32 px variant: legends dropped so the face stays readable. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a52"/><stop offset=".5" stop-color="#ff8f8a"/><stop offset="1" stop-color="#4cc3fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <rect x="5" y="8" width="22" height="20" rx="6" fill="#d4d9ea"/>
+  <rect x="5" y="6" width="22" height="20" rx="6" fill="#fff"/>
+  <ellipse cx="12.3" cy="15" rx="2" ry="2.4" fill="#1d2033"/>
+  <ellipse cx="19.7" cy="15" rx="2" ry="2.4" fill="#1d2033"/>
+  <path d="M13.8 19.2 q2.2 2.2 4.4 0" fill="none" stroke="#1d2033" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
