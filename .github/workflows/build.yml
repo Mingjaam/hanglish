@@ -68,6 +68,7 @@ jobs:
           MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
         run: |
           if [ -z "$MAC_CERT_P12" ]; then echo "No signing certificate; building with an ad-hoc signature."; exit 0; fi
+          if [ -z "$MAC_CERT_PASSWORD" ]; then echo "::warning::MAC_CERT_PASSWORD is not set; building with an ad-hoc signature."; exit 0; fi
           keychain="$RUNNER_TEMP/signing.keychain-db"
           keychain_password=$(uuidgen)
           echo "$MAC_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
@@ -84,10 +85,14 @@ jobs:
           echo "Signing as: $identity"
       - name: Build app
         env:
-          MAC_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
-          MAC_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
-          MAC_TEAM_ID: ${{ secrets.MAC_TEAM_ID }}
+          MAC_NOTARY_KEY: ${{ secrets.MAC_NOTARY_KEY }}
+          MAC_NOTARY_KEY_ID: ${{ secrets.MAC_NOTARY_KEY_ID }}
+          MAC_NOTARY_ISSUER: ${{ secrets.MAC_NOTARY_ISSUER }}
         run: |
+          if [ -n "$MAC_NOTARY_KEY" ]; then
+            echo "$MAC_NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+            export MAC_NOTARY_KEY_PATH="$RUNNER_TEMP/notary.p8"
+          fi
           version=0.0.0
           if [ "${{ github.ref_type }}" = "tag" ]; then version="${GITHUB_REF_NAME#v}"; fi
           mkdir -p out

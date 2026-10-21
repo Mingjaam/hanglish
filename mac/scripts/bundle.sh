@@ -5,8 +5,11 @@
 # Signing is optional and driven by the environment:
 #   MAC_SIGN_IDENTITY      a "Developer ID Application: ..." identity in the keychain; without it
 #                          the app gets an ad-hoc signature that only runs on the building Mac
-#   MAC_NOTARY_APPLE_ID,   Apple ID, app-specific password and team for notarization; without them
-#   MAC_NOTARY_PASSWORD,   a signed build is produced but not notarized
+#   MAC_NOTARY_KEY_PATH,   App Store Connect API key (.p8), its key ID and issuer ID for notarization
+#   MAC_NOTARY_KEY_ID,
+#   MAC_NOTARY_ISSUER
+#   MAC_NOTARY_APPLE_ID,   or instead: Apple ID, app-specific password and team ID
+#   MAC_NOTARY_PASSWORD,   Without either set, a signed build is produced but not notarized.
 #   MAC_TEAM_ID
 set -eu
 version=$1
@@ -57,10 +60,18 @@ rm -rf "$tools" "$out/dmg-background.tiff"
 
 if [ -n "$identity" ]; then
     codesign --force --timestamp --sign "$identity" "$out/Hanglish.dmg"
-    if [ -n "${MAC_NOTARY_APPLE_ID:-}" ] && [ -n "${MAC_NOTARY_PASSWORD:-}" ] && [ -n "${MAC_TEAM_ID:-}" ]; then
-        # Notarizing the disk image covers the app inside it; staple both so they open offline too.
+    notarized=""
+    # Notarizing the disk image covers the app inside it; staple both so they open offline too.
+    if [ -n "${MAC_NOTARY_KEY_PATH:-}" ]; then
+        xcrun notarytool submit "$out/Hanglish.dmg" --key "$MAC_NOTARY_KEY_PATH" \
+            --key-id "$MAC_NOTARY_KEY_ID" --issuer "$MAC_NOTARY_ISSUER" --wait --timeout 30m
+        notarized=yes
+    elif [ -n "${MAC_NOTARY_APPLE_ID:-}" ]; then
         xcrun notarytool submit "$out/Hanglish.dmg" --apple-id "$MAC_NOTARY_APPLE_ID" \
             --password "$MAC_NOTARY_PASSWORD" --team-id "$MAC_TEAM_ID" --wait --timeout 30m
+        notarized=yes
+    fi
+    if [ -n "$notarized" ]; then
         xcrun stapler staple "$out/Hanglish.dmg"
         xcrun stapler staple "$app"
         spctl --assess --type open --context context:primary-signature --verbose=2 "$out/Hanglish.dmg"
