@@ -17,6 +17,7 @@ final class SettingsModel: ObservableObject {
     var caretPreview: Bool { get { app.caretPreview } set { app.caretPreview = newValue; objectWillChange.send() } }
     var preview: PreviewMode { get { app.preview } set { app.preview = newValue; objectWillChange.send() } }
     var flipKey: FlipKey { get { app.flipKey } set { app.flipKey = newValue; objectWillChange.send() } }
+    var skipSensitiveFields: Bool { get { app.skipSensitiveFields } set { app.skipSensitiveFields = newValue; objectWillChange.send() } }
     var bubbleStyle: BubbleStyle { get { app.bubbleStyle } set { app.bubbleStyle = newValue; objectWillChange.send() } }
     var excludedApps: [String] { app.excludedApps }
 
@@ -53,6 +54,7 @@ struct SettingsView: View {
         Form {
             Toggle("한글리쉬 사용", isOn: $model.enabled)
             Toggle("로그인할 때 실행", isOn: $model.launchAtLogin)
+            Toggle("비밀번호·인증번호 칸에서는 쉬기", isOn: $model.skipSensitiveFields)
             Picker("입력하는 동안", selection: $model.preview) {
                 Text("한글로 미리 보기").tag(PreviewMode.hangul)
                 Text("영문 그대로 보이기").tag(PreviewMode.raw)

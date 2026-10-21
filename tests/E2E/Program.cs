@@ -128,6 +128,8 @@ static class E2E
         var form = new Form { Text = "Hanglish E2E", Width = 600, Height = 160, TopMost = true, StartPosition = FormStartPosition.CenterScreen };
         var box = new TextBox { Dock = DockStyle.Fill, Multiline = true, Font = new Font("Malgun Gothic", 14) };
         if (Environment.GetEnvironmentVariable("E2E_NO_IME") == "1") box.ImeMode = ImeMode.Disable;
+        // E2E_LABEL names the box for accessibility, e.g. "인증번호 입력" to test code-field detection.
+        if (Environment.GetEnvironmentVariable("E2E_LABEL") is { Length: > 0 } label) box.AccessibleName = label;
         form.Controls.Add(box);
         form.Shown += async (_, _) =>
         {

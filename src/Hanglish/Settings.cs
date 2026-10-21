@@ -22,6 +22,7 @@ sealed class Settings
     public FlipKey FlipKey { get; set; } = FlipKey.RightCtrl;
     public bool ShownHangulKeyTip { get; set; }
     public bool CaretPreview { get; set; } = true;
+    public bool SkipSensitiveFields { get; set; } = true;
     public BubbleStyle BubbleStyle { get; set; } = BubbleStyle.White;
 
     /// <summary>2: the flip key moved off 한/영, which habit presses before typing Korean.</summary>

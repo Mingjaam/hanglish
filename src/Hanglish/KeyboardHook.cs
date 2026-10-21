@@ -46,6 +46,8 @@ sealed class KeyboardHook : IDisposable
 
     public bool Enabled { get; set; } = true;
     public FlipKey FlipKey { get; set; } = FlipKey.RightCtrl;
+    /// <summary>Leave password and verification-code fields alone.</summary>
+    public bool SkipSensitiveFields { get; set; } = true;
     public HashSet<string> ExcludedApps { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Process name of the last foreground app other than this one.</summary>
@@ -106,7 +108,11 @@ sealed class KeyboardHook : IDisposable
 
         if (vk is >= 'A' and <= 'Z')
         {
-            if (engine.Composing.Length == 0 && PasswordField()) { engine.Reset(); return false; }
+            if (engine.Composing.Length == 0 && (PasswordField() || SkipSensitiveFields && SensitiveField.Active))
+            {
+                engine.Reset();
+                return false;
+            }
             if (engine.Composing.Length == 0) ForceLatinIme();
             bool upper = Pressed(VK_SHIFT) ^ ((GetKeyState(VK_CAPITAL) & 1) != 0);
             return Apply(engine.Letter(upper ? (char)vk : char.ToLowerInvariant((char)vk)), info);
@@ -228,6 +234,7 @@ sealed class KeyboardHook : IDisposable
     void OnFocus(IntPtr hook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
         engine.Reset();
+        SensitiveField.Refresh();
         KeyHandled?.Invoke();
         if (eventType != EVENT_SYSTEM_FOREGROUND) return;
         currentApp = ForegroundApp();

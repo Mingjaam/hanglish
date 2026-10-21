@@ -91,6 +91,7 @@ sealed class SettingsForm : Form
     {
         page.Check("한글리쉬 사용", app.Settings.Enabled, v => app.SetEnabled(v));
         page.Check("Windows 시작할 때 실행", Settings.StartsWithWindows, v => Settings.StartsWithWindows = v);
+        page.Check("비밀번호·인증번호 칸에서는 쉬기", app.Settings.SkipSensitiveFields, v => app.SetSkipSensitiveFields(v));
         page.Subheading("입력하는 동안");
         page.Radio(new[] { ("한글로 미리 보기", "치는 동안 한글로 보이고, 단어가 끝날 때 영어면 바뀝니다.") ,
                            ("영문 그대로 보이기", "치는 동안 영문 그대로 보이고, 한글이면 단어 끝에서 바뀝니다.") },

@@ -13,6 +13,10 @@ public struct Guess: Equatable {
     public let korean: Bool
     public let alternative: String
     public let confidence: Double
+
+    public init(text: String, korean: Bool, alternative: String, confidence: Double) {
+        self.text = text; self.korean = korean; self.alternative = alternative; self.confidence = confidence
+    }
 }
 
 /// What the keyboard layer must do for one key: optionally swallow it, erase

@@ -91,11 +91,11 @@ final class PillView: NSView {
     private var tagAttributes: [NSAttributedString.Key: Any] {
         [.font: NSFont.systemFont(ofSize: 9.5, weight: .bold), .foregroundColor: guess.korean ? CaretBubble.korean : CaretBubble.english]
     }
-    private var tag: String { guess.korean ? "한" : "EN" }
+    private var tagText: String { guess.korean ? "한" : "EN" }
 
     override var fittingSize: NSSize {
         let text = (guess.text as NSString).size(withAttributes: main)
-        let tagSize = (tag as NSString).size(withAttributes: tagAttributes)
+        let tagSize = (tagText as NSString).size(withAttributes: tagAttributes)
         let mark = style == .minimal ? 6 : tagSize.width + 9
         return NSSize(width: ceil(text.width + 6 + mark + 20 + Self.margin * 2), height: ceil(text.height + 10 + Self.margin * 2))
     }
@@ -130,10 +130,10 @@ final class PillView: NSView {
         }
         (guess.text as NSString).draw(at: NSPoint(x: x, y: textY), withAttributes: main)
         x += textSize.width + 6
-        let tagSize = (tag as NSString).size(withAttributes: tagAttributes)
+        let tagSize = (tagText as NSString).size(withAttributes: tagAttributes)
         let pill = NSRect(x: x, y: card.midY - (tagSize.height + 3) / 2, width: tagSize.width + 9, height: tagSize.height + 3)
         accent.withAlphaComponent(style == .dark ? 0.28 : 0.12).setFill()
         NSBezierPath(roundedRect: pill, xRadius: pill.height / 2, yRadius: pill.height / 2).fill()
-        (tag as NSString).draw(at: NSPoint(x: pill.midX - tagSize.width / 2, y: pill.midY - tagSize.height / 2), withAttributes: tagAttributes)
+        (tagText as NSString).draw(at: NSPoint(x: pill.midX - tagSize.width / 2, y: pill.midY - tagSize.height / 2), withAttributes: tagAttributes)
     }
 }

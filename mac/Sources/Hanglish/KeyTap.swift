@@ -24,6 +24,8 @@ final class KeyTap {
     var enabled = true
     var flipKey: FlipKey = .rightCommand
     var excludedApps: Set<String> = []
+    /// Leave password and verification-code fields alone.
+    var skipSensitiveFields = true
     var currentApp: String? = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
     var onKeyHandled: (() -> Void)?
 
@@ -109,6 +111,10 @@ final class KeyTap {
             return false
         }
         if let letter = Self.letters[code] {
+            if engine.composing.isEmpty && skipSensitiveFields && SensitiveField.focused() {
+                engine.reset()
+                return false
+            }
             if engine.composing.isEmpty { InputSource.selectLatin() }
             let upper = flags.contains(.maskShift) != flags.contains(.maskAlphaShift)
             return apply(engine.letter(upper ? Character(letter.uppercased()) : letter), original: event)
@@ -198,5 +204,30 @@ enum InputSource {
     static func id(_ source: TISInputSource) -> String? {
         guard let pointer = TISGetInputSourceProperty(source, kTISPropertyInputSourceID) else { return nil }
         return Unmanaged<CFString>.fromOpaque(pointer).takeUnretainedValue() as String
+    }
+}
+
+/// Recognizes verification-code fields by their label (password fields already turn on secure input).
+enum SensitiveField {
+    static let label = try! NSRegularExpression(
+        pattern: #"비밀번호|암호|패스워드|인증|보안\s*문자|보안\s*코드|확인\s*코드|otp|one[-\s]?time|verif|passcode|password|passwd|\bpin\b|captcha|security\s*code|auth(entication)?\s*code"#,
+        options: [.caseInsensitive])
+
+    static func focused() -> Bool {
+        let system = AXUIElementCreateSystemWide()
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &value) == .success,
+              let value else { return false }
+        let element = value as! AXUIElement
+        if string(element, kAXSubroleAttribute) == (kAXSecureTextFieldSubrole as String) { return true }
+        let texts = [kAXTitleAttribute, kAXDescriptionAttribute, kAXPlaceholderValueAttribute, kAXHelpAttribute, "AXIdentifier"]
+            .compactMap { string(element, $0) }
+        return texts.contains { label.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil }
+    }
+
+    private static func string(_ element: AXUIElement, _ attribute: String) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
+        return value as? String
     }
 }

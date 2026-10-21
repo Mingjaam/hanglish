@@ -39,7 +39,11 @@ sealed class TrayApp : ApplicationContext
             onIcon = new Icon(stream, SystemInformation.SmallIconSize);
         offIcon = Grayscale(onIcon);
         engine = new Engine(decider, corrections) { Preview = settings.Preview };
-        hook = new KeyboardHook(engine) { Enabled = settings.Enabled, FlipKey = settings.FlipKey };
+        hook = new KeyboardHook(engine)
+        {
+            Enabled = settings.Enabled, FlipKey = settings.FlipKey, SkipSensitiveFields = settings.SkipSensitiveFields,
+        };
+        SensitiveField.Refresh();
         foreach (var app in settings.ExcludedApps) hook.ExcludedApps.Add(app);
         hook.KeyHandled += () => { bubbleDelay.Stop(); bubbleDelay.Start(); };
         bubbleDelay.Tick += (_, _) =>
@@ -134,6 +138,12 @@ sealed class TrayApp : ApplicationContext
     {
         settings.CaretPreview = on;
         if (!on) bubble.Hide();
+        settings.Save();
+    }
+
+    public void SetSkipSensitiveFields(bool on)
+    {
+        settings.SkipSensitiveFields = hook.SkipSensitiveFields = on;
         settings.Save();
     }
 

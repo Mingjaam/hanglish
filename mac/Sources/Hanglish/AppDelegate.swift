@@ -49,6 +49,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         get { BubbleStyle(rawValue: defaults.string(forKey: "bubbleStyle") ?? "") ?? .white }
         set { defaults.set(newValue.rawValue, forKey: "bubbleStyle") }
     }
+    var skipSensitiveFields: Bool {
+        get { defaults.object(forKey: "skipSensitiveFields") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "skipSensitiveFields"); tap?.skipSensitiveFields = newValue }
+    }
     var excludedApps: [String] {
         get { defaults.stringArray(forKey: "excludedApps") ?? [] }
         set { defaults.set(newValue, forKey: "excludedApps"); tap.excludedApps = Set(newValue) }
@@ -69,6 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         tap.enabled = enabled
         tap.flipKey = flipKey
         tap.excludedApps = Set(excludedApps)
+        tap.skipSensitiveFields = skipSensitiveFields
         tap.onKeyHandled = { [weak self] in self?.scheduleBubble() }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
