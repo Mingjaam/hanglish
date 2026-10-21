@@ -90,7 +90,9 @@ sealed class KeyboardHook : IDisposable
             record(vk);
             return true;
         }
-        if (vk == FlipKey)
+        // In excluded apps the flip key and 한/영 keep their usual jobs (e.g. switching the Windows IME).
+        if (Paused()) { engine.Reset(); return false; }
+        if (FlipKeys.Matches(vk, FlipKey))
         {
             if (!FlipKeys.IsModifier(vk))
             {

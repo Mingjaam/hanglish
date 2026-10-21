@@ -5,9 +5,10 @@ import HanglishCore
 /// Which keys can flip a word, and their names for the settings window.
 enum FlipKeys {
     static let capsLock: Int64 = 57
-    static let defaultKey = capsLock
+    /// Right ⌘: habit never taps it alone, unlike Caps Lock, which many use to switch input sources.
+    static let defaultKey: Int64 = 54
     /// Presets shown in settings; any other allowed key can be recorded.
-    static let presets: [Int64] = [57, 54, 61, 62]
+    static let presets: [Int64] = [54, 57, 61, 62]
 
     /// Modifier keys and the flag that shows them held down. Caps Lock toggles instead of holding.
     static let modifierFlags: [Int64: CGEventFlags] = [
@@ -45,7 +46,7 @@ final class KeyTap {
 
     let engine: Engine
     var enabled = true
-    /// Key code of the key that flips a word (Caps Lock by default).
+    /// Key code of the key that flips a word (right ⌘ by default).
     var flipKey: Int64 = FlipKeys.defaultKey
     /// Set by the settings window: the next allowed key pressed becomes the flip key (nil on esc).
     var recordNext: ((Int64?) -> Void)?
@@ -120,7 +121,7 @@ final class KeyTap {
             DispatchQueue.main.async { record(code) }
             return
         }
-        guard code == flipKey else { flipArmed = false; return }
+        guard code == flipKey, !paused() else { flipArmed = false; return }
         // Caps Lock reports each press as a toggle, so every change is one press.
         if code == FlipKeys.capsLock { apply(engine.flip(), original: nil); return }
         guard let flag = FlipKeys.modifierFlags[code] else { return }
@@ -147,7 +148,7 @@ final class KeyTap {
             }
             return true
         }
-        if code == flipKey && FlipKeys.modifierFlags[code] == nil && code != FlipKeys.capsLock {
+        if code == flipKey && FlipKeys.modifierFlags[code] == nil && code != FlipKeys.capsLock && !paused() {
             // A dedicated key (F13, 영문 키...): flip on press and keep it from doing anything else.
             apply(engine.flip(), original: nil)
             return true

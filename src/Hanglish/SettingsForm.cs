@@ -98,7 +98,7 @@ sealed class SettingsForm : Form
             app.Settings.Preview == PreviewMode.Hangul ? 0 : 1,
             i => app.SetPreview(i == 0 ? PreviewMode.Hangul : PreviewMode.Raw));
         page.Subheading("뒤집기 키");
-        page.Note("지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꾸는 키입니다. Ctrl·Alt 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요.");
+        page.Note("지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꾸는 키입니다. 기본은 오른쪽 Ctrl이고, 한/영 키나 Caps Lock 등 원하는 키로 바꿀 수 있어요. Ctrl·Alt 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요. 한/영 키를 고르면 습관처럼 누를 때 앞 단어가 바뀔 수 있어요.");
         var presets = FlipKeys.Presets;
         int current = Array.IndexOf(presets, app.Settings.FlipKeyCode);
         var radios = new List<RadioButton>();

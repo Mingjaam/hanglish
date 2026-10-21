@@ -58,7 +58,7 @@ static class EngineTests
             Check("punctuation", mode, "dkssud.", "안녕.");
             Check("flip after trailing backspace", mode, "dkssud_<!", "dkssud");
             Check("name", mode, "rlaalswo_", "김민재 ");
-            Check("backfill to go home", mode, "to_go_home_", "to go home ");
+            Check("backfill to do list", mode, "dhsmf_to_do_list_", "오늘 to do list ");
             Check("korean stays korean", mode, "dkssud_go_", "안녕 해 ");
             Check("backfill so good", mode, "so_good_", "so good ");
             Check("backfill go home", mode, "go_home_", "go home ");

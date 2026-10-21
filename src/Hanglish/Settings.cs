@@ -26,9 +26,9 @@ sealed class Settings
     public bool SkipSensitiveFields { get; set; } = true;
     public BubbleStyle BubbleStyle { get; set; } = BubbleStyle.White;
 
-    /// <summary>3: the flip key is any key, 한/영 by default.</summary>
+    /// <summary>4: the default flip key moved from 한/영 to right Ctrl (habit presses 한/영 before Korean).</summary>
     public int Version { get; set; } = CurrentVersion;
-    const int CurrentVersion = 3;
+    const int CurrentVersion = 4;
     public List<string> ExcludedApps { get; set; } = new();
     public bool ShownWelcome { get; set; }
 
@@ -41,7 +41,9 @@ sealed class Settings
                 var loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath), Json) ?? new();
                 if (loaded.Version < CurrentVersion || !File.ReadAllText(FilePath).Contains("\"Version\""))
                 {
-                    loaded.FlipKeyCode = FlipKeys.Default;
+                    // Earlier defaults (한/영 in 0.3.0, right Ctrl before) become the new default; a key the
+                    // user picked on purpose stays.
+                    if (loaded.Version < 3 || loaded.FlipKeyCode == Native.VK_HANGUL) loaded.FlipKeyCode = FlipKeys.Default;
                     loaded.Version = CurrentVersion;
                     loaded.Save();
                 }

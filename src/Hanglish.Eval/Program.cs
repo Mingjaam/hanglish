@@ -36,6 +36,18 @@ if (args.Length >= 2 && args[0] == "--tune")
     return;
 }
 
+if (args.Length >= 2 && args[0] == "--try")
+{
+    // --try "sentence"...: what the field shows just before the last word, and at the end.
+    foreach (var sentence in args.Skip(1))
+    {
+        var cut = sentence.LastIndexOf(' ');
+        var before = CorpusEval.Type(decider, sentence[..cut] + " ").TrimEnd();
+        Console.WriteLine($"{sentence,-28} | before last word: {before,-20} | final: {CorpusEval.Type(decider, sentence)}");
+    }
+    return;
+}
+
 if (args.Length >= 2 && args[0] == "--explain")
 {
     foreach (var raw in args.Skip(1))

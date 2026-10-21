@@ -45,7 +45,7 @@ final class EngineTests: XCTestCase {
             ("dkssus<d_", "안녕 "), ("dkssud_!", "dkssud "), ("dkssud_!!", "안녕 "), ("hello!", "ㅗ디ㅣㅐ"),
             ("dkssud~", "dkssud"), ("dkssud.", "안녕."), ("dkssud_<!", "dkssud"), ("rlaalswo_", "김민재 "),
             ("dkssud_go_", "안녕 해 "), ("so_good_", "so good "), ("go_home_", "go home "), ("so_dkssud_", "내 안녕 "),
-            ("dlTEk_", "있다 "),
+            ("dlTEk_", "있다 "), ("dhsmf_to_do_list_", "오늘 to do list "),
         ]
         for mode in [PreviewMode.hangul, .raw] {
             for (keys, want) in cases {

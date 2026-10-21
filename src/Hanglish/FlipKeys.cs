@@ -6,10 +6,17 @@ namespace Hanglish;
 /// <summary>Which keys can flip a word, and their names for the settings window.</summary>
 static class FlipKeys
 {
-    public const int Default = VK_HANGUL;
+    /// <summary>
+    /// Right Ctrl: habit never presses it alone, unlike 한/영 (pressed before typing Korean). Korean
+    /// keyboards that put 한자 on that spot send VK_HANJA instead, so that key counts as the same.
+    /// </summary>
+    public const int Default = VK_RCONTROL;
 
     /// <summary>Presets shown in settings; any other allowed key can be recorded.</summary>
-    public static readonly int[] Presets = { VK_HANGUL, VK_RCONTROL, VK_RMENU, VK_CAPITAL };
+    public static readonly int[] Presets = { VK_RCONTROL, VK_HANGUL, VK_RMENU, VK_CAPITAL };
+
+    /// <summary>Whether a key press is the configured flip key (한자 stands in for right Ctrl).</summary>
+    public static bool Matches(int vk, int flipKey) => vk == flipKey || flipKey == VK_RCONTROL && vk == VK_HANJA;
 
     /// <summary>Modifiers flip on a lone tap so they keep working in shortcuts; other keys flip on press.</summary>
     public static bool IsModifier(int vk) => vk is VK_SHIFT or VK_LSHIFT or VK_RSHIFT or VK_CONTROL or VK_LCONTROL
@@ -24,7 +31,7 @@ static class FlipKeys
     {
         VK_HANGUL => "한/영 키",
         VK_HANJA => "한자 키",
-        VK_RCONTROL => "오른쪽 Ctrl",
+        VK_RCONTROL => "오른쪽 Ctrl (한자 키)",
         VK_LCONTROL => "왼쪽 Ctrl",
         VK_RMENU => "오른쪽 Alt",
         VK_LMENU => "왼쪽 Alt",

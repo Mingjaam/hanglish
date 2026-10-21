@@ -15,7 +15,8 @@ static class Frames
         ("섞어 써도 알아서", "|githubdptj_zhemfmf_qkedkTdj."),
         ("이름도 한글로", "|rlaalswo_dlqslek."),
         ("애매하면 뒤 단어를 보고 고쳐요", "|so_good."),
-        ("틀리면 한/영 키 한 번", "|go_!"),
+        ("앞 문맥까지 함께 고쳐요", "|dhsmf_to_do_list."),
+        ("틀리면 오른쪽 Ctrl 한 번", "|go_!"),
     };
 
     public static void Write(Decider decider, string path)

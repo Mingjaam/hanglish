@@ -83,7 +83,8 @@ struct SettingsView: View {
             HStack {
                 Button(model.recording ? "바꿀 키를 누르세요 (esc: 취소)" : "다른 키로 바꾸기...") { model.recordFlipKey() }
                     .disabled(model.recording)
-                Text("⌘ · ⌥ 같은 키는 혼자 눌렀다 뗄 때만 동작해요.").font(.caption).foregroundStyle(.secondary)
+                Text("⌘ · ⌥ 같은 키는 혼자 눌렀다 뗄 때만 동작해요. Caps Lock을 고르면 입력 소스를 바꾸려고 누를 때 앞 단어가 바뀔 수 있어요.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .padding(24)

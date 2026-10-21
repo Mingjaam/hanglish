@@ -53,7 +53,8 @@
   .caption { position: absolute; left: 0; top: 0; z-index: 2; background: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px; font-size: 14px; font-weight: 700; }
   .caption::before { content: "● "; color: var(--ko); }
   .os-label { position: absolute; right: 0; top: 6px; font: 700 12px "JetBrains Mono"; color: var(--muted); letter-spacing: 1px; }
-  .win { border-radius: 12px; overflow: hidden; border: 1px solid #2f3552; background: #f3f4f8; color: #1a1c26; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+  .win { height: 340px; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; border: 1px solid #2f3552; background: #f3f4f8; color: #1a1c26; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+  .win > * { flex: none; }
   .bar { height: 38px; display: flex; align-items: center; padding-left: 14px; gap: 10px; font-size: 13px; color: #3b3f52; }
   .skin-win .bar { background: linear-gradient(90deg, #e9ecf5, #f1eef5); }
   .skin-win .doc { width: 14px; height: 16px; border: 1.5px solid #5d6380; border-radius: 2px; }
@@ -63,9 +64,14 @@
   .skin-mac .win { border-radius: 14px; }
   .skin-mac .bar { background: #ecedf1; justify-content: center; position: relative; border-bottom: 1px solid #dcdee6; }
   .skin-mac .lights { position: absolute; left: 14px; display: flex; gap: 8px; }
-  .skin-mac .lights i { width: 12px; height: 12px; border-radius: 50%; background: #c9ccd6; }
+  .skin-mac .lights i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.18); }
+  .skin-mac .lights i:nth-child(1) { background: #ff5f57; }
+  .skin-mac .lights i:nth-child(2) { background: #febc2e; }
+  .skin-mac .lights i:nth-child(3) { background: #28c840; }
+  .skin-mac .toolbar { display: flex; align-items: center; gap: 12px; padding: 6px 16px; font-size: 12px; color: #5b6075; border-bottom: 1px solid #e2e4ec; background: #f7f7f9; }
+  .skin-mac .toolbar span { padding: 2px 8px; border-radius: 5px; background: #fff; border: 1px solid #e0e2ea; }
   .menu { display: flex; gap: 18px; padding: 6px 16px; font-size: 13px; color: #5b6075; border-bottom: 1px solid #e2e4ec; background: #fafbfd; }
-  .doc-area { position: relative; height: 230px; padding: 18px 22px; background: #fff; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+  .doc-area { position: relative; flex: 1 1 auto !important; min-height: 0; padding: 18px 22px; background: #fff; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
   .field { font: 22px/1.55 "IBM Plex Sans KR", sans-serif; white-space: pre-wrap; word-break: break-all; }
   .caret { display: inline-block; width: 2px; height: 1.15em; background: #1a1c26; vertical-align: -0.2em; animation: blink 1s steps(1) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
@@ -73,17 +79,19 @@
   .bubble { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; background: #fff; border: 1px solid #e4e7ef; color: #191b26; font: 700 14px "IBM Plex Sans KR"; white-space: nowrap; box-shadow: 0 4px 14px rgba(20,24,45,.14); transition: left .12s, top .12s, opacity .15s; pointer-events: none; }
   .bubble em { font: 700 10px "IBM Plex Sans KR"; font-style: normal; padding: 1px 6px; border-radius: 99px; color: var(--accent); background: var(--tint); }
   .status { display: flex; justify-content: space-between; padding: 5px 16px; font-size: 12px; color: #6a6f86; background: #f3f4f8; border-top: 1px solid #e2e4ec; }
-  .skin-mac .status { display: none; }
+  .skin-mac .status { background: #f7f7f9; }
 
   .kbd { margin: 22px auto 0; display: grid; gap: 6px; width: fit-content; }
   .row { display: flex; gap: 6px; }
   .row:nth-child(2) { margin-left: 18px; } .row:nth-child(3) { margin-left: 40px; }
-  .key { width: 40px; height: 44px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); border-bottom-width: 3px; position: relative; font-family: "JetBrains Mono"; transition: transform .08s, background .08s, border-color .08s; }
-  .key .l { position: absolute; left: 6px; top: 3px; font-size: 12px; color: var(--en); }
-  .key .j { position: absolute; right: 6px; bottom: 3px; font: 700 13px "IBM Plex Sans KR"; color: var(--ko); }
-  .key.wide { width: 74px; } .key.space { width: 240px; } .key .w { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11px; color: var(--muted); text-align: center; line-height: 1.2; }
-  .key.on { transform: translateY(2px); border-bottom-width: 1px; background: #262c48; border-color: #4a5380; }
-  .key.flip.on { background: rgba(255,107,74,.25); border-color: var(--ko); }
+  .key { width: 40px; height: 44px; border-radius: 8px; background: linear-gradient(#ffffff, #f1f2f6); border: 1px solid #d5d8e2; border-bottom: 3px solid #b9bdcb; position: relative; font-family: "JetBrains Mono"; box-shadow: 0 2px 6px rgba(0,0,0,.25); transition: transform .08s, background .08s, border-color .08s; }
+  .key .l { position: absolute; left: 6px; top: 3px; font-size: 12px; font-weight: 700; color: #1688c4; }
+  .key .j { position: absolute; right: 6px; bottom: 3px; font: 700 13px "IBM Plex Sans KR"; color: #e2552f; }
+  .key.wide { width: 74px; } .key.space { width: 240px; } .key .w { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #5b6075; text-align: center; line-height: 1.2; }
+  .key.wide.flip { width: 86px; }
+  .key.on { transform: translateY(2px); border-bottom-width: 1px; background: linear-gradient(#e6f4fc, #d6ecf9); border-color: #8ccbee; }
+  .key.flip.on { background: linear-gradient(#ffe9e2, #ffd9cd); border-color: #ff9a7f; }
+  .kbd { padding: 12px; border-radius: 14px; background: #d9dce6; box-shadow: inset 0 1px 0 #eef0f5, 0 18px 40px rgba(0,0,0,.35); }
 
   section { padding: 96px 0; }
   .kicker { font: 700 13px "JetBrains Mono"; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
@@ -156,7 +164,8 @@
     .row:nth-child(2) { margin-left: 10px; } .row:nth-child(3) { margin-left: 22px; }
     .kbd { gap: 4px; } .row { gap: 4px; }
     .field { font-size: 18px; }
-    .doc-area { height: 190px; padding: 14px 16px; }
+    .win { height: 300px; }
+    .doc-area { padding: 14px 16px; }
     .skin-win .ctl span { width: 34px; }
     section { padding: 72px 0; }
   }
@@ -181,7 +190,7 @@
     <div>
       <span class="eyebrow"><b></b>Windows · macOS · 무료 오픈소스</span>
       <h1>그냥 치세요.<br><span class="ko">한글</span>인지 <span class="en">English</span>인지<br>고르는 건 저희가.</h1>
-      <p class="lead">영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 한글리쉬가 골라 줍니다. 한/영 키는 틀렸을 때만 누르면 돼요.</p>
+      <p class="lead">영문 자판 그대로 두벌식 자리를 치면, 단어가 끝나는 순간 한글로 쓸지 영어로 쓸지 한글리쉬가 골라 줍니다. 한/영 키를 누를 일이 없어요.</p>
       <div class="cta">
         <a class="btn primary" data-asset="Hanglish-Setup.exe" href="#download">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.4 1.2L21 21V12.5h-9.6zm0-15.4v7.2H21V3z"/></svg>
@@ -227,9 +236,9 @@
         <p>영어 단어 뒤에 붙는 조사는 한글로. 띄어쓰기 없이 이어 쳐도 나눠 줍니다.</p>
       </div>
       <div class="card">
-        <div class="chip"><span class="strike">내</span><span>so</span><span>good</span></div>
-        <h3>뒤를 보고 앞을 고쳐요</h3>
-        <p>양쪽 다 말이 되는 짧은 단어는 다음 단어로 언어가 분명해지면 함께 바로잡습니다.</p>
+        <div class="chip"><span class="strike">새 애</span><span>to do list</span></div>
+        <h3>앞 문맥까지 고쳐요</h3>
+        <p>"새 애"로 보이던 단어도 뒤에 list가 오면 앞 두 단어까지 함께 영어로 바로잡습니다.</p>
       </div>
       <div class="card">
         <div class="chip"><span>dlT<b class="ko">E</b>k</span><span class="arrow">→</span><span>있다</span></div>
@@ -242,9 +251,9 @@
         <p>단어를 다 치기 전에 어떻게 확정될지 커서 바로 위에 작게 보여 줍니다.</p>
       </div>
       <div class="card">
-        <div class="chip"><kbd>한/영</kbd><span class="arrow">/</span><kbd>Caps Lock</kbd></div>
+        <div class="chip"><kbd>오른쪽 Ctrl</kbd><span class="arrow">/</span><kbd>오른쪽 ⌘</kbd></div>
         <h3>틀리면 키 하나</h3>
-        <p>Windows는 한/영 키, macOS는 Caps Lock으로 방금 단어를 바꿉니다. 키는 설정에서 바꿀 수 있어요.</p>
+        <p>방금 단어를 반대 언어로 바꿉니다. 한/영 키나 Caps Lock이 편하면 설정에서 원하는 키로 바꿀 수 있어요.</p>
       </div>
       <div class="card">
         <div class="chip"><span>흰색</span><span class="arrow">·</span><span>어두운색</span><span class="arrow">·</span><span>간단히</span></div>
@@ -285,7 +294,7 @@
       <div class="num"><strong>100%</strong><span>Shift 실수가 섞인 문장 600개</span></div>
       <div class="num"><strong>99.8%</strong><span>문맥 없는 영어 단어 800개</span></div>
     </div>
-    <p class="note">Tatoeba 문장(CC BY 2.0 FR)을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 똑같이 나온 비율입니다. 섞인 문장, 이름, Shift 실수는 자동으로 만든 시험용 데이터입니다. 문맥 없이 <span class="mono">go</span>만 치면 <span class="ko">해</span>가 되는 것처럼 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키(Windows 한/영, macOS Caps Lock) 한 번이면 됩니다.</p>
+    <p class="note">Tatoeba 문장(CC BY 2.0 FR)을 두벌식 키로 바꿔 끝까지 쳐 본 뒤, 문장 전체가 똑같이 나온 비율입니다. 섞인 문장, 이름, Shift 실수는 자동으로 만든 시험용 데이터입니다. 문맥 없이 <span class="mono">go</span>만 치면 <span class="ko">해</span>가 되는 것처럼 짧은 단어 하나는 틀릴 수 있어요. 그럴 땐 뒤집기 키(Windows 오른쪽 Ctrl, macOS 오른쪽 ⌘) 한 번이면 됩니다.</p>
   </div>
 </section>
 
@@ -335,6 +344,7 @@
     <h2>자주 묻는 질문</h2>
     <details><summary>입력한 내용이 어디로 가나요?</summary><p>아무 데도 가지 않습니다. 판단은 컴퓨터 안에서만 하고, 인터넷 연결도 쓰지 않아요. 저장하는 것은 직접 고친 단어 목록과 설정뿐입니다.</p></details>
     <details><summary>비밀번호를 칠 때는요?</summary><p>macOS는 비밀번호 칸(보안 입력)에서 자동으로 멈춥니다. Windows는 일반 프로그램의 비밀번호 칸은 건너뛰지만 웹 브라우저의 비밀번호 칸은 알아채지 못하니, 그때는 설정에서 잠시 꺼 주세요.</p></details>
+    <details><summary>뒤집기 키를 한/영 키나 Caps Lock으로 바꿀 수 있나요?</summary><p>네. 설정 → 일반 → 뒤집기 키에서 목록에서 고르거나 "다른 키로 바꾸기"를 누른 뒤 원하는 키를 누르면 됩니다. 다만 한/영 키나 Caps Lock은 언어를 바꾸려고 습관처럼 누를 때가 많아서, 그때마다 앞 단어가 바뀔 수 있어요.</p></details>
     <details><summary>게임이나 vim처럼 글자 키를 단축키로 쓰는 프로그램은요?</summary><p>메뉴의 "○○에서는 쓰지 않기"나 설정 창의 "쓰지 않는 앱"에 넣으면 그 프로그램에서만 꺼집니다.</p></details>
     <details><summary>백신이 막아요.</summary><p>한글리쉬는 키 입력을 받아 글자를 바꿔 쓰기 때문에 일부 백신이 의심할 수 있습니다. 소스 코드가 모두 공개되어 있으니 확인한 뒤 예외로 등록해 주세요.</p></details>
     <details><summary>관리자 권한으로 실행한 창에서는 안 돼요.</summary><p>Windows 보안 정책상 일반 프로그램은 관리자 권한 창에 글자를 보낼 수 없습니다. 그런 창에서는 평소 입력기를 쓰거나, 한글리쉬도 관리자 권한으로 실행해 주세요.</p></details>
@@ -363,12 +373,13 @@
   /** One demo screen. Both skins replay the same engine frames; only the chrome and flip key differ. */
   function buildDemo(stage) {
     const mac = stage.dataset.demo === "mac";
-    const flipLabel = mac ? "Caps Lock" : "한/영";
+    const flipLabel = mac ? "오른쪽 ⌘" : "오른쪽 Ctrl";
     stage.innerHTML = `
       <div class="caption"></div><div class="os-label">${mac ? "macOS" : "WINDOWS"}</div>
       <div class="win">
         ${mac
-          ? `<div class="bar"><span class="lights"><i></i><i></i><i></i></span><span>메모</span></div>`
+          ? `<div class="bar"><span class="lights"><i></i><i></i><i></i></span><span>메모</span></div>
+             <div class="toolbar"><span>본문</span><span>Apple SD 산돌고딕 Neo</span><span>15</span></div>`
           : `<div class="bar"><span class="doc"></span><span>메모 - 제목 없음</span><div class="ctl">
                <span><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></span>
                <span><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg></span>
@@ -412,7 +423,8 @@
       bubble.style.top = Math.max(4, c.top - d.top - bubble.offsetHeight - 4) + "px";
       bubble.style.opacity = 1;
     }
-    const label = text => mac ? text.replace("한/영 키", "Caps Lock") : text;
+    // Captions are written for Windows; on the Mac the flip key is Caps Lock and nobody presses 한/영.
+    const label = text => mac ? text.replace("오른쪽 Ctrl", "오른쪽 ⌘").replace("한/영 키 없이", "입력 소스 전환 없이") : text;
 
     return {
       frame(si, st) {

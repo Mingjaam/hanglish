@@ -55,7 +55,7 @@ sealed class TrayApp : ApplicationContext
             settings.ShownHangulKeyTip = true;
             settings.Save();
             tray!.ShowBalloonTip(6000, "한/영 키는 안 눌러도 돼요",
-                $"한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}로 바꾸세요.", ToolTipIcon.Info);
+                $"한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}를 누르세요. 한/영 키로 바꾸고 싶다면 설정 → 뒤집기 키에서 고를 수 있어요.", ToolTipIcon.Info);
         };
 
         tray = new NotifyIcon { Visible = true, ContextMenuStrip = new ContextMenuStrip() };
@@ -67,7 +67,7 @@ sealed class TrayApp : ApplicationContext
         if (!settings.ShownWelcome)
         {
             tray.ShowBalloonTip(8000, "한글리쉬 실행 중",
-                $"영문 자판으로 두고 그냥 치세요. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}로 바꿔요. 아이콘을 두 번 누르면 설정이 열려요.", ToolTipIcon.Info);
+                $"영문 자판으로 두고 그냥 치세요. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}를 한 번 눌러 바꿔요. 이 키는 설정에서 한/영 키 등 원하는 키로 바꿀 수 있어요.", ToolTipIcon.Info);
             settings.ShownWelcome = true;
             settings.Save();
         }
