@@ -109,7 +109,7 @@
     <td valign="top">
       <ol>
         <li><a href="../../releases/latest/download/Hanglish.dmg"><b>Hanglish.dmg</b></a>를 열고, 한글리쉬 아이콘을 <b>응용 프로그램</b> 폴더로 끌어다 놓아요.</li>
-        <li>처음 열 때 안내가 나오면 <b>시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기</b>.</li>
+        <li>응용 프로그램에서 한글리쉬를 열어요. <sub>(Apple 공증을 받은 앱이라 경고 없이 열려요)</sub></li>
         <li><b>손쉬운 사용</b>에서 한글리쉬를 켜요. <sub>(키 입력을 받는 데 필요해요)</sub></li>
         <li>입력 소스는 ABC로 두고 그냥 치세요.<br><sub>Launchpad에서 한글리쉬를 다시 열면 설정 창이 열려요.</sub></li>
       </ol>
@@ -188,7 +188,7 @@
 
 - 진짜 입력기(IME)가 아니라 키를 받아 지우고 다시 쓰는 방식이라, 자동완성이 글자를 선택해 두는 입력창(브라우저 주소창 등)에서는 어긋날 수 있어요.
 - Windows에서 관리자 권한으로 실행된 창에는 글자를 보낼 수 없어요.
-- macOS 앱은 Apple 개발자 서명이 없어서, 업데이트할 때마다 손쉬운 사용 권한을 다시 켜야 할 수 있어요.
+- macOS 0.3.1 이하에서 0.3.2 이상으로 처음 업데이트할 때는 서명이 바뀌어서 손쉬운 사용 권한을 한 번 다시 켜야 해요. 그 뒤로는 업데이트해도 유지돼요.
 </details>
 
 <details>
@@ -208,12 +208,12 @@
 dotnet run --project src/Hanglish.Eval -c Release -- --engine          # 상태 처리 테스트
 dotnet run --project src/Hanglish.Eval -c Release -- --corpus tests/corpus/ko_test.txt tests/corpus/mixed_test.txt
 dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true -o out/Hanglish
-ISCC /DVersion=0.3.1 /DSource=%CD%\out\Hanglish installer\Hanglish.iss   # out\Hanglish-Setup.exe
+ISCC /DVersion=0.3.2 /DSource=%CD%\out\Hanglish installer\Hanglish.iss   # out\Hanglish-Setup.exe
 
 # macOS (Xcode 15 이상)
 sh mac/scripts/prepare.sh            # 사전을 Swift 패키지로 복사
 (cd mac && swift test)               # Windows 엔진과 결과 비교 포함
-sh mac/scripts/bundle.sh 0.3.1 "$PWD/out"   # Hanglish.dmg + zip
+sh mac/scripts/bundle.sh 0.3.2 "$PWD/out"   # Hanglish.dmg + zip (MAC_SIGN_IDENTITY 등을 주면 서명·공증)
 ```
 
 `v*` 태그를 올리면 GitHub Actions가 Windows 설치 프로그램, macOS 디스크 이미지, 압축 파일을 만들어 Release에 올려요. `site/`는 main에 올릴 때 GitHub Pages로 배포돼요.
