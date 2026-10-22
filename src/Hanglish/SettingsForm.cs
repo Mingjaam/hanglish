@@ -136,7 +136,7 @@ sealed class SettingsForm : Form
             bool taken = FlipKeys.Same(vk, other());
             var radio = new RadioButton
             {
-                Text = FlipKeys.Name(vk) + (vk == defaultKey ? " (기본)" : "") + (taken ? $" — {otherName}로 사용 중" : ""),
+                Text = FlipKeys.Name(vk) + (vk == defaultKey ? " (기본)" : "") + (!taken ? "" : vk == other() ? $" — {otherName}로 사용 중" : $" — {otherName}({FlipKeys.Name(other())})와 같은 키"),
                 Checked = vk == current(), Enabled = !taken, AutoSize = true, Margin = P(0, 2, 0, 0),
             };
             // Rebuilt afterwards so the other picker sees the change.

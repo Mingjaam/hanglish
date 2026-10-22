@@ -24,7 +24,13 @@ static class FlipKeys
     public static readonly int[] PreviewPresets = { VK_HANGUL, VK_CAPITAL, VK_RMENU, None };
 
     /// <summary>Whether two settings would claim the same physical key.</summary>
-    public static bool Same(int a, int b) => a != None && b != None && (Matches(a, b) || Matches(b, a));
+    public static bool Same(int a, int b) => a != None && b != None && Physical(a) == Physical(b);
+
+    /// <summary>
+    /// Korean keyboards put 한자 and 한/영 where right Ctrl and right Alt sit, and send either code for
+    /// them (한/영 often both: right Alt, then VK_HANGUL). Such a pair is one key, so it serves one setting.
+    /// </summary>
+    static int Physical(int vk) => vk switch { VK_HANJA => VK_RCONTROL, VK_HANGUL => VK_RMENU, _ => vk };
 
     /// <summary>Whether a key press is the configured flip key (한자 stands in for right Ctrl).</summary>
     public static bool Matches(int vk, int flipKey) => vk == flipKey || flipKey == VK_RCONTROL && vk == VK_HANJA;
