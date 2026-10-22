@@ -16,7 +16,7 @@ static class EngineTests
             if (!a.Swallow || a.Replay) Text = passed == "\b" ? Text[..Math.Max(0, Text.Length - 1)] : Text + passed;
         }
 
-        /// <summary>Types keys; "_" is Space, "!" is the flip key, "<" is Backspace, "~" is Esc.</summary>
+        /// <summary>Types keys; "_" is Space, "!" is the flip key, "<" is Backspace, "~" is Esc, "^" is the preview toggle key.</summary>
         public Field Type(string keys)
         {
             foreach (var k in keys)
@@ -28,6 +28,7 @@ static class EngineTests
                     case '!': { var a = Engine.Flip(); Text = Text[..(Text.Length - a.Backspaces)] + a.Text; break; }
                     case '<': Apply(Engine.Backspace(), "\b"); break;
                     case '~': { var a = Engine.Escape(); Text = Text[..(Text.Length - a.Backspaces)] + a.Text; break; }
+                    case '^': Apply(Engine.TogglePreview(), ""); break;
                     default: Apply(Engine.Letter(k), k.ToString()); break;
                 }
             }
@@ -64,7 +65,14 @@ static class EngineTests
             Check("backfill go home", mode, "go_home_", "go home ");
             Check("korean after ambiguous", mode, "so_dkssud_", "내 안녕 ");
             Check("shift held one key too long", mode, "dlTEk_", "있다 ");
+            Check("toggle preview mid-word", mode, "dks^sud_", "안녕 ");
+            Check("toggle preview twice", mode, "dk^^ssud_hi_", "안녕 hi ");
         }
+        // The toggle redraws the word being typed in the new mode, and the mode stays for later words.
+        Check("toggle shows latin", PreviewMode.Hangul, "dks^", "dks");
+        Check("toggle shows hangul", PreviewMode.Raw, "dks^", "안");
+        Check("toggle before typing", PreviewMode.Hangul, "^dkssud", "dkssud");
+        Check("toggle sticks", PreviewMode.Raw, "dkssud_^rlaalswo", "안녕 김민재");
         // A flip is remembered after the same preceding word only.
         var store = new CorrectionStore(null);
         string Run(string keys) { var f = new Field(decider, PreviewMode.Hangul, store); f.Type(keys); return f.Text; }

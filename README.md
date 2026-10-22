@@ -59,7 +59,7 @@
   <tr>
     <td width="33%" valign="top">
       <h3>틀리면 키 하나</h3>
-      Windows는 오른쪽 <kbd>Ctrl</kbd>, macOS는 오른쪽 <kbd>⌘</kbd>을 한 번. 방금 단어가 반대 언어로 바뀌고, 같은 앞 단어 뒤에서 기억해요. 한/영 키나 Caps Lock 등 원하는 키로 바꿀 수 있어요.
+      Windows는 오른쪽 <kbd>Ctrl</kbd>, macOS는 오른쪽 <kbd>⌘</kbd>을 한 번. 방금 단어가 반대 언어로 바뀌고, 같은 앞 단어 뒤에서 기억해요. 원하는 키로 바꿀 수 있어요.
     </td>
     <td width="33%" valign="top">
       <h3>커서 위 미리보기</h3>
@@ -87,7 +87,7 @@
 </table>
 
 <p align="center">
-  <img src="docs/settings-general.png" alt="일반 설정" width="49%">
+  <img src="docs/settings-keys.png" alt="키 설정" width="49%">
   <img src="docs/settings-bubble.png" alt="말풍선 설정" width="49%">
 </p>
 
@@ -122,10 +122,11 @@
 | | Windows | macOS |
 |:---|:---|:---|
 | 방금 단어를 반대 언어로 바꾸기 | 오른쪽 <kbd>Ctrl</kbd> (한자 키) | 오른쪽 <kbd>⌘</kbd> |
+| 치는 동안 한글로 볼지 영문 그대로 볼지 전환 | <kbd>한/영</kbd> | <kbd>Caps Lock</kbd> (한/영) |
 | 치던 단어를 영문 그대로 확정 | <kbd>Esc</kbd> | <kbd>esc</kbd> |
 | 설정 열기 | 트레이 아이콘 두 번 클릭, 또는 시작 메뉴에서 다시 실행 | 메뉴 막대 아이콘, 또는 Launchpad에서 다시 열기 |
 
-**뒤집기 키는 바꿀 수 있어요.** 설정 → 일반 → 뒤집기 키에서 한/영 키, Caps Lock, 오른쪽 Alt 등을 고르거나, **다른 키로 바꾸기**를 누른 뒤 원하는 키를 눌러 지정하세요. <kbd>Ctrl</kbd> · <kbd>⌘</kbd> 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요. 오른쪽 Ctrl 자리에 한자 키가 있는 키보드는 한자 키가 같은 역할을 해요.
+**뒤집기 키와 미리보기 전환 키는 바꿀 수 있어요.** 설정 → 키에서 목록에서 고르거나, **다른 키로 바꾸기**를 누른 뒤 원하는 키를 눌러 지정하세요. 미리보기 전환 키는 끌 수도 있어요. 단어를 치는 중에 전환 키를 누르면 그 단어도 바로 바뀌어 보여요. <kbd>Ctrl</kbd> · <kbd>⌘</kbd> 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요. 오른쪽 Ctrl 자리에 한자 키가 있는 키보드는 한자 키가 같은 역할을 해요.
 
 ## 정확도
 
@@ -171,9 +172,9 @@
 </details>
 
 <details>
-<summary><b>뒤집기 키를 한/영 키나 Caps Lock으로 바꿀 수 있나요?</b></summary>
+<summary><b>한/영 키를 누르면 어떻게 되나요?</b></summary>
 <br>
-네. 설정 → 일반 → 뒤집기 키에서 고르면 돼요. 다만 한/영 키나 Caps Lock은 언어를 바꾸려고 습관처럼 누를 때가 많아서, 그때마다 방금 친 단어가 반대 언어로 바뀔 수 있어요. 그래서 기본값은 습관과 겹치지 않는 오른쪽 Ctrl / 오른쪽 ⌘으로 정했어요. 한/영 키를 뒤집기 키로 쓰지 않을 때는 한/영 키를 눌러도 아무 일도 하지 않아요. 잘못 기억된 교정은 설정 → 저장된 교정에서 지울 수 있어요.
+치는 동안 한글로 보일지 영문 그대로 보일지가 바뀌어요 (macOS는 Caps Lock). 확정되는 결과는 그대로라서, 습관처럼 눌러도 친 글이 틀어지지 않아요. 바뀌면 화면에 "한글로 미리 보기" / "영문 그대로 보이기"가 잠깐 떠요. 원하면 설정 → 키에서 한/영 키를 뒤집기 키로 바꿀 수도 있어요. 다만 그러면 습관처럼 누를 때마다 방금 친 단어가 반대 언어로 바뀔 수 있어서, 뒤집기 기본값은 오른쪽 Ctrl / 오른쪽 ⌘으로 정했어요. 잘못 기억된 교정은 설정 → 저장된 교정에서 지울 수 있어요.
 </details>
 
 <details>
@@ -208,12 +209,12 @@
 dotnet run --project src/Hanglish.Eval -c Release -- --engine          # 상태 처리 테스트
 dotnet run --project src/Hanglish.Eval -c Release -- --corpus tests/corpus/ko_test.txt tests/corpus/mixed_test.txt
 dotnet publish src/Hanglish/Hanglish.csproj -c Release -r win-x64 --self-contained true -o out/Hanglish
-ISCC /DVersion=0.3.2 /DSource=%CD%\out\Hanglish installer\Hanglish.iss   # out\Hanglish-Setup.exe
+ISCC /DVersion=0.3.3 /DSource=%CD%\out\Hanglish installer\Hanglish.iss   # out\Hanglish-Setup.exe
 
 # macOS (Xcode 15 이상)
 sh mac/scripts/prepare.sh            # 사전을 Swift 패키지로 복사
 (cd mac && swift test)               # Windows 엔진과 결과 비교 포함
-sh mac/scripts/bundle.sh 0.3.2 "$PWD/out"   # Hanglish.dmg + zip (MAC_SIGN_IDENTITY 등을 주면 서명·공증)
+sh mac/scripts/bundle.sh 0.3.3 "$PWD/out"   # Hanglish.dmg + zip (MAC_SIGN_IDENTITY 등을 주면 서명·공증)
 ```
 
 `v*` 태그를 올리면 GitHub Actions가 Windows 설치 프로그램, macOS 디스크 이미지, 압축 파일을 만들어 Release에 올려요. `site/`는 main에 올릴 때 GitHub Pages로 배포돼요.

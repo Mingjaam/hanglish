@@ -144,6 +144,13 @@ public final class Engine {
         return KeyAction(swallow: true, backspaces: erase, text: last.text + last.trailing)
     }
 
+    /// The preview toggle key: switch the preview mode and redraw the word being typed in it.
+    public func togglePreview() -> KeyAction {
+        preview = preview == .hangul ? .raw : .hangul
+        if raw.isEmpty { return KeyAction(swallow: true) }
+        return show(preview == .raw ? raw : previewText(), swallow: true)
+    }
+
     /// The caret moved or focus changed: forget everything about the field.
     public func reset() {
         raw = ""; shown = ""

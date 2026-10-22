@@ -21,14 +21,19 @@ sealed class Settings
     public PreviewMode Preview { get; set; } = PreviewMode.Hangul;
     /// <summary>Virtual-key code of the flip key.</summary>
     public int FlipKeyCode { get; set; } = FlipKeys.Default;
+    /// <summary>Virtual-key code of the key that toggles the preview mode, or 0 for none.</summary>
+    public int PreviewKeyCode { get; set; } = FlipKeys.PreviewDefault;
     public bool ShownHangulKeyTip { get; set; }
     public bool CaretPreview { get; set; } = true;
     public bool SkipSensitiveFields { get; set; } = true;
     public BubbleStyle BubbleStyle { get; set; } = BubbleStyle.White;
 
-    /// <summary>4: the default flip key moved from 한/영 to right Ctrl (habit presses 한/영 before Korean).</summary>
+    /// <summary>
+    /// 4: the default flip key moved from 한/영 to right Ctrl (habit presses 한/영 before Korean).
+    /// 5: 한/영 became the preview toggle key.
+    /// </summary>
     public int Version { get; set; } = CurrentVersion;
-    const int CurrentVersion = 4;
+    const int CurrentVersion = 5;
     public List<string> ExcludedApps { get; set; } = new();
     public bool ShownWelcome { get; set; }
 
@@ -38,15 +43,18 @@ sealed class Settings
         {
             if (File.Exists(FilePath))
             {
-                var loaded = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath), Json) ?? new();
-                if (loaded.Version < CurrentVersion || !File.ReadAllText(FilePath).Contains("\"Version\""))
-                {
-                    // Earlier defaults (한/영 in 0.3.0, right Ctrl before) become the new default; a key the
-                    // user picked on purpose stays.
-                    if (loaded.Version < 3 || loaded.FlipKeyCode == Native.VK_HANGUL) loaded.FlipKeyCode = FlipKeys.Default;
-                    loaded.Version = CurrentVersion;
-                    loaded.Save();
-                }
+                var text = File.ReadAllText(FilePath);
+                var loaded = JsonSerializer.Deserialize<Settings>(text, Json) ?? new();
+                int from = text.Contains("\"Version\"") ? loaded.Version : 0;
+                bool changed = from < CurrentVersion;
+                // Earlier defaults (한/영 in 0.3.0, right Ctrl before) become the new default; a key the
+                // user picked on purpose stays.
+                if (from < 3 || from < 4 && loaded.FlipKeyCode == Native.VK_HANGUL) loaded.FlipKeyCode = FlipKeys.Default;
+                if (from < 5) loaded.PreviewKeyCode = FlipKeys.PreviewDefault;
+                // The flip key wins a clash: someone who made 한/영 their flip key keeps it.
+                if (FlipKeys.Same(loaded.PreviewKeyCode, loaded.FlipKeyCode)) { loaded.PreviewKeyCode = FlipKeys.None; changed = true; }
+                loaded.Version = CurrentVersion;
+                if (changed) loaded.Save();
                 return loaded;
             }
         }

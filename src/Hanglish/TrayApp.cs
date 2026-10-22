@@ -11,6 +11,8 @@ sealed class TrayApp : ApplicationContext
         $"• {FlipKeys.Name(settings.FlipKeyCode)}: 지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꿉니다.\n" +
         "   바로 한 번 더 누르면 되돌립니다. 바꾼 결과는 같은 앞 단어 뒤에서만 기억하고,\n" +
         "   서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다. 키는 설정에서 바꿀 수 있습니다.\n" +
+        (settings.PreviewKeyCode == FlipKeys.None ? "" :
+            $"• {FlipKeys.Name(settings.PreviewKeyCode)}: 치는 동안 한글로 보일지 영문 그대로 보일지 바꿉니다 (설정에서 키 변경).\n") +
         "• 뒤 단어로 언어가 분명해지면 앞의 애매한 단어도 고칩니다 (내 good → so good).\n" +
         "• Esc: 치던 단어를 영문 그대로 확정합니다.\n" +
         "• 커서 위 말풍선: 치는 동안 어떻게 확정될지 미리 보여 줍니다 (메뉴에서 끌 수 있음).\n" +
@@ -25,6 +27,9 @@ sealed class TrayApp : ApplicationContext
     readonly CaretBubble bubble = new();
     // Waits for the app to draw the injected text before reading the caret position.
     readonly System.Windows.Forms.Timer bubbleDelay = new() { Interval = 35 };
+    // How long the "preview mode changed" notice stays up.
+    readonly System.Windows.Forms.Timer noticeTimer = new() { Interval = 1200 };
+    Guess? notice;
     readonly Icon onIcon, offIcon;
     SettingsForm? settingsForm;
 
@@ -32,22 +37,43 @@ sealed class TrayApp : ApplicationContext
     public CorrectionStore Corrections => corrections;
     public string? LastApp => hook.LastApp;
 
-    public TrayApp(Decider decider)
+    /// <summary>Raised when the preview mode changes from the keyboard, so an open settings window can follow.</summary>
+    public event Action? PreviewChanged;
+
+    public TrayApp(Decider decider, bool hooks = true)
     {
         using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("tray.ico")!)
             onIcon = new Icon(stream, SystemInformation.SmallIconSize);
         offIcon = Grayscale(onIcon);
         engine = new Engine(decider, corrections) { Preview = settings.Preview };
-        hook = new KeyboardHook(engine)
+        hook = new KeyboardHook(engine, hooks)
         {
-            Enabled = settings.Enabled, FlipKey = settings.FlipKeyCode, SkipSensitiveFields = settings.SkipSensitiveFields,
+            Enabled = settings.Enabled, FlipKey = settings.FlipKeyCode, PreviewKey = settings.PreviewKeyCode,
+            SkipSensitiveFields = settings.SkipSensitiveFields,
         };
         foreach (var app in settings.ExcludedApps) hook.ExcludedApps.Add(app);
         hook.KeyHandled += () => { bubbleDelay.Stop(); bubbleDelay.Start(); };
         bubbleDelay.Tick += (_, _) =>
         {
             bubbleDelay.Stop();
-            bubble.Present(settings.Enabled && settings.CaretPreview ? engine.Guess() : null, settings.BubbleStyle);
+            if (notice is not null) bubble.Present(notice, settings.BubbleStyle, anywhere: true);
+            else bubble.Present(settings.Enabled && settings.CaretPreview ? engine.Guess() : null, settings.BubbleStyle);
+        };
+        noticeTimer.Tick += (_, _) =>
+        {
+            noticeTimer.Stop();
+            notice = null;
+            bubbleDelay.Stop();
+            bubbleDelay.Start();
+        };
+        hook.PreviewToggled += mode =>
+        {
+            settings.Preview = mode;
+            settings.Save();
+            notice = new Guess(mode == PreviewMode.Hangul ? "한글로 미리 보기" : "영문 그대로 보이기", mode == PreviewMode.Hangul, "", 1);
+            noticeTimer.Stop();
+            noticeTimer.Start();
+            PreviewChanged?.Invoke();
         };
         hook.HangulKeyPressed += () =>
         {
@@ -55,7 +81,7 @@ sealed class TrayApp : ApplicationContext
             settings.ShownHangulKeyTip = true;
             settings.Save();
             tray!.ShowBalloonTip(6000, "한/영 키는 안 눌러도 돼요",
-                $"한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}를 누르세요. 한/영 키로 바꾸고 싶다면 설정 → 뒤집기 키에서 고를 수 있어요.", ToolTipIcon.Info);
+                $"한글리쉬가 켜져 있으면 그냥 치면 됩니다. 틀린 단어는 {FlipKeys.Name(settings.FlipKeyCode)}를 누르세요. 한/영 키는 설정 → 키에서 미리보기 전환 키나 뒤집기 키로 쓸 수 있어요.", ToolTipIcon.Info);
         };
 
         tray = new NotifyIcon { Visible = true, ContextMenuStrip = new ContextMenuStrip() };
@@ -137,15 +163,11 @@ sealed class TrayApp : ApplicationContext
         settings.Save();
     }
 
-    /// <summary>Waits for the next key press and makes it the flip key; reports the key, or null if cancelled.</summary>
-    public void RecordFlipKey(Action<int?> done)
+    /// <summary>Waits for the next key press and reports it, or null if cancelled; the key does nothing else.</summary>
+    public void RecordKey(Action<int?> done)
     {
         var ui = SynchronizationContext.Current!;
-        hook.RecordNextKey = vk => ui.Post(_ =>
-        {
-            if (vk is int key) SetFlip(key);
-            done(vk);
-        }, null);
+        hook.RecordNextKey = vk => ui.Post(_ => done(vk), null);
     }
 
     public void CancelRecording() => hook.RecordNextKey = null;
@@ -153,6 +175,12 @@ sealed class TrayApp : ApplicationContext
     public void SetFlip(int vk)
     {
         settings.FlipKeyCode = hook.FlipKey = vk;
+        settings.Save();
+    }
+
+    public void SetPreviewKey(int vk)
+    {
+        settings.PreviewKeyCode = hook.PreviewKey = vk;
         settings.Save();
     }
 
@@ -210,6 +238,7 @@ sealed class TrayApp : ApplicationContext
     protected override void ExitThreadCore()
     {
         hook.Dispose();
+        noticeTimer.Dispose();
         bubble.Close();
         tray.Visible = false;
         tray.Dispose();

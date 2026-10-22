@@ -3,7 +3,7 @@ using static Hanglish.Native;
 
 namespace Hanglish;
 
-/// <summary>Which keys can flip a word, and their names for the settings window.</summary>
+/// <summary>Which keys can flip a word or toggle the preview, and their names for the settings window.</summary>
 static class FlipKeys
 {
     /// <summary>
@@ -14,6 +14,17 @@ static class FlipKeys
 
     /// <summary>Presets shown in settings; any other allowed key can be recorded.</summary>
     public static readonly int[] Presets = { VK_RCONTROL, VK_HANGUL, VK_RMENU, VK_CAPITAL };
+
+    /// <summary>The preview toggle key: 한/영, the key people already press to change what they see.</summary>
+    public const int PreviewDefault = VK_HANGUL;
+
+    /// <summary>No key (the preview toggle can be turned off).</summary>
+    public const int None = 0;
+
+    public static readonly int[] PreviewPresets = { VK_HANGUL, VK_CAPITAL, VK_RMENU, None };
+
+    /// <summary>Whether two settings would claim the same physical key.</summary>
+    public static bool Same(int a, int b) => a != None && b != None && (Matches(a, b) || Matches(b, a));
 
     /// <summary>Whether a key press is the configured flip key (한자 stands in for right Ctrl).</summary>
     public static bool Matches(int vk, int flipKey) => vk == flipKey || flipKey == VK_RCONTROL && vk == VK_HANJA;
@@ -29,6 +40,7 @@ static class FlipKeys
 
     public static string Name(int vk) => vk switch
     {
+        None => "사용 안 함",
         VK_HANGUL => "한/영 키",
         VK_HANJA => "한자 키",
         VK_RCONTROL => "오른쪽 Ctrl (한자 키)",

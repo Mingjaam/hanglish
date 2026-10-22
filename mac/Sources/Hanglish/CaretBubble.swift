@@ -24,12 +24,22 @@ final class CaretBubble {
         panel.contentView = view
     }
 
-    /// Shows the guess above the caret, or hides the bubble when the caret cannot be found.
-    func present(_ guess: Guess?, style: BubbleStyle) {
-        guard let guess, let caret = Self.caret() else { panel.orderOut(nil); return }
+    /// Shows the guess above the caret. Without a caret the bubble hides, or with `anywhere`
+    /// (short notices) sits near the bottom of the screen instead.
+    func present(_ guess: Guess?, style: BubbleStyle, anywhere: Bool = false) {
+        guard let guess else { panel.orderOut(nil); return }
+        let found = Self.caret()
+        guard found != nil || anywhere else { panel.orderOut(nil); return }
         view.guess = guess
         view.style = style
         let size = view.fittingSize
+        guard let caret = found else {
+            let visible = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
+            panel.setFrame(NSRect(origin: NSPoint(x: visible.midX - size.width / 2, y: visible.minY + 48), size: size), display: true)
+            view.needsDisplay = true
+            panel.orderFrontRegardless()
+            return
+        }
         // Accessibility rectangles use a top-left origin on the primary screen; AppKit uses bottom-left.
         let primary = NSScreen.screens.first?.frame.height ?? 0
         let margin = PillView.margin

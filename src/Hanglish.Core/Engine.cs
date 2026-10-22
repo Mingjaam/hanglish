@@ -148,6 +148,14 @@ public sealed class Engine
         return new KeyAction(true, erase, last.Text + last.Trailing);
     }
 
+    /// <summary>The preview toggle key: switch the preview mode and redraw the word being typed in it.</summary>
+    public KeyAction TogglePreview()
+    {
+        Preview = Preview == PreviewMode.Hangul ? PreviewMode.Raw : PreviewMode.Hangul;
+        if (raw.Length == 0) return new KeyAction(true);
+        return Show(Preview == PreviewMode.Raw ? raw : PreviewText(), swallow: true);
+    }
+
     /// <summary>The caret moved or focus changed: forget everything about the field.</summary>
     public void Reset()
     {

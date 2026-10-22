@@ -21,16 +21,18 @@ sealed class KeyboardHook : IDisposable
     readonly HookProc keyboardProc, mouseProc;
     readonly WinEventProc focusProc;
     readonly IntPtr keyboardHook, mouseHook, foregroundHook, focusHook;
-    bool flipArmed;
-    long flipDownAt;
+    bool flipArmed, previewArmed;
+    long flipDownAt, previewDownAt;
     string? currentApp = ForegroundApp();
 
-    public KeyboardHook(Engine engine)
+    /// <param name="install">False builds the object without hooking the keyboard (offscreen snapshots).</param>
+    public KeyboardHook(Engine engine, bool install = true)
     {
         this.engine = engine;
         keyboardProc = OnKey;
         mouseProc = OnMouse;
         focusProc = OnFocus;
+        if (!install) return;
         var module = GetModuleHandle(null);
         keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, module, 0);
         mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, module, 0);
@@ -43,10 +45,12 @@ sealed class KeyboardHook : IDisposable
     }
 
     public bool Enabled { get; set; } = true;
-    /// <summary>Virtual-key code of the key that flips a word (한/영 by default).</summary>
+    /// <summary>Virtual-key code of the key that flips a word (right Ctrl by default).</summary>
     public int FlipKey { get; set; } = FlipKeys.Default;
+    /// <summary>Virtual-key code of the key that toggles the preview mode (한/영 by default), or 0.</summary>
+    public int PreviewKey { get; set; } = FlipKeys.PreviewDefault;
 
-    /// <summary>Set by the settings window: the next allowed key pressed becomes the flip key (null on Esc).</summary>
+    /// <summary>Set by the settings window: reports the next allowed key pressed (null on Esc).</summary>
     public Action<int?>? RecordNextKey { get; set; }
     /// <summary>Leave password and verification-code fields alone.</summary>
     public bool SkipSensitiveFields { get; set; } = true;
@@ -60,8 +64,11 @@ sealed class KeyboardHook : IDisposable
     /// <summary>Raised after every key the hook looked at, so the caret preview can refresh.</summary>
     public event Action? KeyHandled;
 
-    /// <summary>The 한/영 key was pressed while it is not the flip key (it is swallowed).</summary>
+    /// <summary>The 한/영 key was pressed while it is neither the flip nor the preview key (it is swallowed).</summary>
     public event Action? HangulKeyPressed;
+
+    /// <summary>The preview toggle key switched the engine's preview mode.</summary>
+    public event Action<PreviewMode>? PreviewToggled;
 
     IntPtr OnKey(int code, IntPtr wParam, IntPtr lParam)
     {
@@ -94,29 +101,25 @@ sealed class KeyboardHook : IDisposable
         if (Paused()) { engine.Reset(); return false; }
         if (FlipKeys.Matches(vk, FlipKey))
         {
-            if (!FlipKeys.IsModifier(vk))
-            {
-                // A dedicated key (한/영, Caps Lock, F-keys): flip on press and keep it from doing anything else.
-                if (down) Apply(engine.Flip(), info);
-                return true;
-            }
-            // A modifier flips only when tapped alone, so shortcuts with it still work.
-            if (down && !flipArmed) { flipArmed = true; flipDownAt = Environment.TickCount64; }
-            else if (!down && flipArmed)
-            {
-                flipArmed = false;
-                if (Environment.TickCount64 - flipDownAt < 500) Apply(engine.Flip(), info);
-            }
+            // A dedicated key (한/영, Caps Lock, F-keys) acts on press and is kept from doing anything else.
+            if (!FlipKeys.IsModifier(vk)) { if (down) Apply(engine.Flip(), info); return true; }
+            if (Tapped(down, ref flipArmed, ref flipDownAt)) Apply(engine.Flip(), info);
+            return false;
+        }
+        if (PreviewKey != FlipKeys.None && vk == PreviewKey)
+        {
+            if (!FlipKeys.IsModifier(vk)) { if (down) TogglePreview(info); return true; }
+            if (Tapped(down, ref previewArmed, ref previewDownAt)) TogglePreview(info);
             return false;
         }
         if (vk == VK_HANGUL)
         {
-            // Not the flip key: still swallowed, since Korean and English both come out of English mode.
+            // Not one of our keys: still swallowed, since Korean and English both come out of English mode.
             if (down) HangulKeyPressed?.Invoke();
             return true;
         }
         if (!down) return false;
-        flipArmed = false;
+        flipArmed = previewArmed = false;
 
         if (vk is VK_SHIFT or VK_LSHIFT or VK_RSHIFT or VK_CAPITAL or VK_CONTROL or VK_LCONTROL or VK_RCONTROL
             or VK_MENU or VK_LMENU or VK_RMENU or VK_LWIN or VK_RWIN)
@@ -145,6 +148,21 @@ sealed class KeyboardHook : IDisposable
         if (text is not null) return Apply(engine.Boundary(text), info);
         engine.Reset();   // arrows, Home, Delete, F-keys...: the caret may have moved
         return false;
+    }
+
+    /// <summary>A modifier acts only when tapped alone, so shortcuts with it still work.</summary>
+    static bool Tapped(bool down, ref bool armed, ref long downAt)
+    {
+        if (down && !armed) { armed = true; downAt = Environment.TickCount64; return false; }
+        if (down || !armed) return false;
+        armed = false;
+        return Environment.TickCount64 - downAt < 500;
+    }
+
+    void TogglePreview(KBDLLHOOKSTRUCT info)
+    {
+        Apply(engine.TogglePreview(), info);
+        PreviewToggled?.Invoke(engine.Preview);
     }
 
     /// <summary>Performs the engine's action; returns whether the original key is swallowed.</summary>

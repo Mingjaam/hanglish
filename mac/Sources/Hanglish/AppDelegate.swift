@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
           이 키는 설정에서 Caps Lock 등 원하는 키로 바꿀 수 있습니다.
           바로 한 번 더 누르면 되돌립니다. 바꾼 결과는 같은 앞 단어 뒤에서만 기억하고,
           서로 다른 두 곳에서 같은 교정을 하면 어디서나 적용합니다.
+        • Caps Lock(한/영, 기본): 치는 동안 한글로 보일지 영문 그대로 보일지 바꿉니다.
+          단어를 치는 중에 눌러도 바로 바뀌고, 이 키도 설정에서 바꾸거나 끌 수 있습니다.
         • 뒤 단어로 언어가 분명해지면 앞의 애매한 단어도 고칩니다 (내 good → so good).
         • esc: 치던 단어를 영문 그대로 확정합니다.
         • 커서 위 말풍선: 치는 동안 어떻게 확정될지 미리 보여 줍니다.
@@ -28,6 +30,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let bubble = CaretBubble()
     let settingsWindow = SettingsWindow()
     var bubbleWork: DispatchWorkItem?
+    /// A short notice shown instead of the guess, e.g. after the preview toggle key.
+    var notice: Guess?
+    var noticeWork: DispatchWorkItem?
     var permissionTimer: Timer?
 
     var enabled: Bool {
@@ -44,7 +49,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     var flipKey: Int64 {
         get { (defaults.object(forKey: "flipKeyCode") as? NSNumber)?.int64Value ?? FlipKeys.defaultKey }
-        set { defaults.set(NSNumber(value: newValue), forKey: "flipKeyCode"); tap.flipKey = newValue }
+        set { defaults.set(NSNumber(value: newValue), forKey: "flipKeyCode"); tap?.flipKey = newValue }
+    }
+    var previewKey: Int64 {
+        get { (defaults.object(forKey: "previewKeyCode") as? NSNumber)?.int64Value ?? FlipKeys.previewDefault }
+        set { defaults.set(NSNumber(value: newValue), forKey: "previewKeyCode"); tap?.previewKey = newValue }
     }
     var bubbleStyle: BubbleStyle {
         get { BubbleStyle(rawValue: defaults.string(forKey: "bubbleStyle") ?? "") ?? .white }
@@ -70,9 +79,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         engine.preview = preview
+        // The flip key wins a clash: someone who made Caps Lock their flip key keeps it.
+        if FlipKeys.same(previewKey, flipKey) { previewKey = FlipKeys.none }
         tap = KeyTap(engine: engine)
         tap.enabled = enabled
         tap.flipKey = flipKey
+        tap.previewKey = previewKey
+        tap.onPreviewToggled = { [weak self] mode in self?.previewToggled(mode) }
         tap.excludedApps = Set(excludedApps)
         tap.skipSensitiveFields = skipSensitiveFields
         tap.onKeyHandled = { [weak self] in self?.scheduleBubble() }
@@ -111,10 +124,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         bubbleWork?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
+            if let notice = self.notice { self.bubble.present(notice, style: self.bubbleStyle, anywhere: true); return }
             self.bubble.present(self.enabled && self.caretPreview ? self.engine.guess() : nil, style: self.bubbleStyle)
         }
         bubbleWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.035, execute: work)
+    }
+
+    /// The preview toggle key changed the mode: keep it, and say so for a moment.
+    func previewToggled(_ mode: PreviewMode) {
+        defaults.set(mode.rawValue, forKey: "preview")
+        notice = Guess(text: mode == .hangul ? "한글로 미리 보기" : "영문 그대로 보이기", korean: mode == .hangul,
+                       alternative: "", confidence: 1)
+        noticeWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.notice = nil
+            self?.scheduleBubble()
+        }
+        noticeWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+        settingsWindow.refresh()
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {

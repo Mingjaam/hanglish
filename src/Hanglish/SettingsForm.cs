@@ -49,11 +49,16 @@ sealed class SettingsForm : Form
             Margin = P(8, 0, 0, 14),
         });
         AddSection("일반", General);
+        AddSection("키", Keys);
         AddSection("말풍선", Bubble);
         AddSection("쓰지 않는 앱", Apps);
         AddSection("저장된 교정", Corrections);
         AddSection("정보", About);
         Show(Math.Clamp(section, 0, navButtons.Count - 1));
+        // The preview toggle key changes what the 일반 page shows.
+        Action follow = () => { if (shown == 0) Show(0); };
+        app.PreviewChanged += follow;
+        FormClosed += (_, _) => { app.PreviewChanged -= follow; app.CancelRecording(); };
     }
 
     void AddSection(string title, Action<Page> build)
@@ -71,8 +76,11 @@ sealed class SettingsForm : Form
         nav.Controls.Add(button);
     }
 
+    int shown = -1;
+
     void Show(int index)
     {
+        shown = index;
         for (int i = 0; i < navButtons.Count; i++)
         {
             navButtons[i].BackColor = i == index ? Color.White : Sidebar;
@@ -97,21 +105,42 @@ sealed class SettingsForm : Form
                            ("영문 그대로 보이기", "치는 동안 영문 그대로 보이고, 한글이면 단어 끝에서 바뀝니다.") },
             app.Settings.Preview == PreviewMode.Hangul ? 0 : 1,
             i => app.SetPreview(i == 0 ? PreviewMode.Hangul : PreviewMode.Raw));
+        if (app.Settings.PreviewKeyCode != FlipKeys.None)
+            page.Note($"치는 중에도 {FlipKeys.Name(app.Settings.PreviewKeyCode)}로 바로 바꿀 수 있어요. 키는 '키' 메뉴에서 바꿀 수 있어요.");
+    }
+
+    void Keys(Page page)
+    {
         page.Subheading("뒤집기 키");
-        page.Note("지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꾸는 키입니다. 기본은 오른쪽 Ctrl이고, 한/영 키나 Caps Lock 등 원하는 키로 바꿀 수 있어요. Ctrl·Alt 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요. 한/영 키를 고르면 습관처럼 누를 때 앞 단어가 바뀔 수 있어요.");
-        var presets = FlipKeys.Presets;
-        int current = Array.IndexOf(presets, app.Settings.FlipKeyCode);
-        var radios = new List<RadioButton>();
+        page.Note("지금 치는 단어나 방금 확정된 단어를 반대 언어로 바꾸는 키입니다. 기본은 오른쪽 Ctrl이고, Caps Lock 등 원하는 키로 바꿀 수 있어요. Ctrl·Alt 같은 키는 혼자 눌렀다 뗄 때만 동작해서 단축키에는 영향이 없어요.");
+        KeyPicker(page, FlipKeys.Presets, FlipKeys.Default, () => app.Settings.FlipKeyCode, app.SetFlip,
+            () => app.Settings.PreviewKeyCode, "미리보기 전환 키");
+        page.Subheading("미리보기 전환 키");
+        page.Note("치는 동안 한글로 보일지 영문 그대로 보일지 바꾸는 키입니다. 단어를 치는 중에 눌러도 그 단어가 바로 바뀌어 보여요. 기본은 한/영 키이고, 다른 키로 바꾸거나 끌 수 있어요.");
+        KeyPicker(page, FlipKeys.PreviewPresets, FlipKeys.PreviewDefault, () => app.Settings.PreviewKeyCode, app.SetPreviewKey,
+            () => app.Settings.FlipKeyCode, "뒤집기 키");
+    }
+
+    /// <summary>
+    /// Preset radios plus "pick another key" for one key setting. A key the other setting already uses
+    /// cannot be chosen, so the two never collide.
+    /// </summary>
+    void KeyPicker(Page page, int[] presets, int defaultKey, Func<int> current, Action<int> set, Func<int> other, string otherName)
+    {
         var custom = new Label { AutoSize = true, ForeColor = Muted, Margin = P(0, 6, 0, 0) };
-        void ShowCurrent() => custom.Text = $"지금 키: {FlipKeys.Name(app.Settings.FlipKeyCode)}";
+        void ShowCurrent(string? problem = null) =>
+            custom.Text = problem ?? $"지금 키: {FlipKeys.Name(current())}";
         ShowCurrent();
-        for (int i = 0; i < presets.Length; i++)
+        foreach (int vk in presets)
         {
-            int vk = presets[i];
-            var radio = new RadioButton { Text = FlipKeys.Name(vk) + (vk == FlipKeys.Default ? " (기본)" : ""), Checked = i == current,
-                AutoSize = true, Margin = P(0, 2, 0, 0) };
-            radio.CheckedChanged += (_, _) => { if (radio.Checked) { app.SetFlip(vk); ShowCurrent(); } };
-            radios.Add(radio);
+            bool taken = FlipKeys.Same(vk, other());
+            var radio = new RadioButton
+            {
+                Text = FlipKeys.Name(vk) + (vk == defaultKey ? " (기본)" : "") + (taken ? $" — {otherName}로 사용 중" : ""),
+                Checked = vk == current(), Enabled = !taken, AutoSize = true, Margin = P(0, 2, 0, 0),
+            };
+            // Rebuilt afterwards so the other picker sees the change.
+            radio.CheckedChanged += (_, _) => { if (radio.Checked && vk != current()) { set(vk); BeginInvoke(() => Show(shown)); } };
             page.Add(radio);
         }
         Button? record = null;
@@ -119,18 +148,21 @@ sealed class SettingsForm : Form
         {
             record!.Text = "바꿀 키를 누르세요 (Esc: 취소)";
             record.Enabled = false;
-            app.RecordFlipKey(vk =>
+            app.RecordKey(vk =>
             {
                 if (IsDisposed) return;
-                record.Text = "다른 키로 바꾸기...";
-                record.Enabled = true;
-                int index = Array.IndexOf(presets, app.Settings.FlipKeyCode);
-                for (int r = 0; r < radios.Count; r++) radios[r].Checked = r == index;
-                ShowCurrent();
+                if (vk is int key && FlipKeys.Same(key, other()))
+                {
+                    record.Text = "다른 키로 바꾸기...";
+                    record.Enabled = true;
+                    ShowCurrent($"{FlipKeys.Name(key)}은(는) 이미 {otherName}로 쓰고 있어요");
+                    return;
+                }
+                if (vk is int chosen) set(chosen);
+                Show(shown);
             });
         });
         page.Row(record, custom);
-        FormClosed += (_, _) => app.CancelRecording();
     }
 
     void Bubble(Page page)

@@ -32,15 +32,26 @@ sealed class CaretBubble : Form
         }
     }
 
-    /// <summary>Shows the guess above the caret, or hides the bubble when the caret cannot be found.</summary>
-    public void Present(Guess? guess, BubbleStyle style)
+    /// <summary>
+    /// Shows the guess above the caret. Without a caret the bubble hides, or with <paramref name="anywhere"/>
+    /// (short notices) sits near the bottom of the screen instead.
+    /// </summary>
+    public void Present(Guess? guess, BubbleStyle style, bool anywhere = false)
     {
-        if (guess is null || Caret() is not { } caret) { Hide(); return; }
-        var screen = Screen.FromRectangle(caret);
+        if (guess is null) { Hide(); return; }
+        var found = Caret();
+        if (found is null && !anywhere) { Hide(); return; }
+        var screen = found is { } c ? Screen.FromRectangle(c) : Screen.FromHandle(GetForegroundWindow());
         float scale = Dpi(screen) / 96f;
         using var bitmap = BubbleRenderer.Render(guess, style, scale);
         int margin = BubbleRenderer.Margin(scale);
         var area = screen.WorkingArea;
+        if (found is not { } caret)
+        {
+            if (!Visible) Show();
+            Draw(bitmap, new Point(area.Left + (area.Width - bitmap.Width) / 2, area.Bottom - bitmap.Height - (int)(48 * scale)));
+            return;
+        }
         int x = Math.Clamp(caret.Left - margin - (int)(10 * scale), area.Left - margin, area.Right - bitmap.Width + margin);
         int y = caret.Top - bitmap.Height + margin - (int)(4 * scale);
         if (y + margin < area.Top) y = caret.Bottom - margin + (int)(6 * scale);

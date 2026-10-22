@@ -6,7 +6,7 @@ import XCTest
 final class EngineTests: XCTestCase {
     static let decider: Decider = try! Decider()
 
-    /// A simulated text field. Keys: "_" Space, "." period, "!" flip, "<" Backspace, "~" Esc.
+    /// A simulated text field. Keys: "_" Space, "." period, "!" flip, "<" Backspace, "~" Esc, "^" preview toggle.
     final class Field {
         var text = ""
         let engine: Engine
@@ -32,6 +32,7 @@ final class EngineTests: XCTestCase {
                 case "!": apply(engine.flip(), nil)
                 case "<": apply(engine.backspace(), "\u{8}")
                 case "~": apply(engine.escape(), nil)
+                case "^": apply(engine.togglePreview(), nil)
                 default: apply(engine.letter(k), String(k))
                 }
             }
@@ -46,12 +47,21 @@ final class EngineTests: XCTestCase {
             ("dkssud~", "dkssud"), ("dkssud.", "안녕."), ("dkssud_<!", "dkssud"), ("rlaalswo_", "김민재 "),
             ("dkssud_go_", "안녕 해 "), ("so_good_", "so good "), ("go_home_", "go home "), ("so_dkssud_", "내 안녕 "),
             ("dlTEk_", "있다 "), ("dhsmf_to_do_list_", "오늘 to do list "),
+            ("dks^sud_", "안녕 "), ("dk^^ssud_hi_", "안녕 hi "),
         ]
         for mode in [PreviewMode.hangul, .raw] {
             for (keys, want) in cases {
                 XCTAssertEqual(Field(mode).type(keys).text, want, "[\(mode)] \(keys)")
             }
         }
+    }
+
+    /// The toggle redraws the word being typed in the new mode, and the mode stays for later words.
+    func testPreviewToggle() {
+        XCTAssertEqual(Field(.hangul).type("dks^").text, "dks")
+        XCTAssertEqual(Field(.raw).type("dks^").text, "안")
+        XCTAssertEqual(Field(.hangul).type("^dkssud").text, "dkssud")
+        XCTAssertEqual(Field(.raw).type("dkssud_^rlaalswo").text, "안녕 김민재")
     }
 
     func testCorrectionsStayInContext() {

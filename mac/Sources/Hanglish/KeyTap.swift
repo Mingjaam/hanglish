@@ -2,13 +2,21 @@ import AppKit
 import Carbon.HIToolbox
 import HanglishCore
 
-/// Which keys can flip a word, and their names for the settings window.
+/// Which keys can flip a word or toggle the preview, and their names for the settings window.
 enum FlipKeys {
     static let capsLock: Int64 = 57
     /// Right ⌘: habit never taps it alone, unlike Caps Lock, which many use to switch input sources.
     static let defaultKey: Int64 = 54
     /// Presets shown in settings; any other allowed key can be recorded.
     static let presets: [Int64] = [54, 57, 61, 62]
+    /// The preview toggle key: Caps Lock, the Mac's 한/영 key, which people already press to change what they see.
+    static let previewDefault: Int64 = 57
+    /// No key (the preview toggle can be turned off). Key code 0 is A, so this is negative.
+    static let none: Int64 = -1
+    static let previewPresets: [Int64] = [57, 61, 62, FlipKeys.none]
+
+    /// Whether two settings would claim the same physical key.
+    static func same(_ a: Int64, _ b: Int64) -> Bool { a != none && a == b }
 
     /// Modifier keys and the flag that shows them held down. Caps Lock toggles instead of holding.
     static let modifierFlags: [Int64: CGEventFlags] = [
@@ -18,7 +26,7 @@ enum FlipKeys {
 
     static func name(_ code: Int64) -> String {
         let names: [Int64: String] = [
-            57: "Caps Lock", 54: "오른쪽 ⌘", 55: "왼쪽 ⌘", 61: "오른쪽 ⌥", 58: "왼쪽 ⌥", 62: "오른쪽 Control",
+            FlipKeys.none: "사용 안 함", 57: "Caps Lock (한/영)", 54: "오른쪽 ⌘", 55: "왼쪽 ⌘", 61: "오른쪽 ⌥", 58: "왼쪽 ⌥", 62: "오른쪽 Control",
             59: "왼쪽 Control", 60: "오른쪽 Shift", 56: "왼쪽 Shift", 63: "fn",
             122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7", 100: "F8", 101: "F9",
             109: "F10", 103: "F11", 111: "F12", 105: "F13", 107: "F14", 113: "F15", 106: "F16", 64: "F17",
@@ -48,7 +56,11 @@ final class KeyTap {
     var enabled = true
     /// Key code of the key that flips a word (right ⌘ by default).
     var flipKey: Int64 = FlipKeys.defaultKey
-    /// Set by the settings window: the next allowed key pressed becomes the flip key (nil on esc).
+    /// Key code of the key that toggles the preview mode (Caps Lock by default), or FlipKeys.none.
+    var previewKey: Int64 = FlipKeys.previewDefault
+    /// Called after the preview toggle key switched the engine's preview mode.
+    var onPreviewToggled: ((PreviewMode) -> Void)?
+    /// Set by the settings window: reports the next allowed key pressed (nil on esc).
     var recordNext: ((Int64?) -> Void)?
     var excludedApps: Set<String> = []
     /// Leave password and verification-code fields alone.
@@ -57,8 +69,8 @@ final class KeyTap {
     var onKeyHandled: (() -> Void)?
 
     private var tap: CFMachPort?
-    private var flipArmed = false
-    private var flipDownAt = Date.distantPast
+    private var flipArmed = false, previewArmed = false
+    private var flipDownAt = Date.distantPast, previewDownAt = Date.distantPast
     private let source = CGEventSource(stateID: .hidSystemState)
 
     init(engine: Engine) {
@@ -104,8 +116,7 @@ final class KeyTap {
             engine.reset()
             return Unmanaged.passUnretained(event)
         case .flagsChanged:
-            flagsChanged(event)
-            return Unmanaged.passUnretained(event)
+            return flagsChanged(event) ? nil : Unmanaged.passUnretained(event)
         case .keyDown:
             return keyDown(event) ? nil : Unmanaged.passUnretained(event)
         default:
@@ -113,30 +124,56 @@ final class KeyTap {
         }
     }
 
-    /// A lone tap of the flip key (right ⌘ by default) flips the word.
-    private func flagsChanged(_ event: CGEvent) {
+    /// A lone tap of the flip key (right ⌘ by default) flips the word; of the preview key, toggles the preview.
+    /// Returns whether the event is swallowed.
+    private func flagsChanged(_ event: CGEvent) -> Bool {
         let code = event.getIntegerValueField(.keyboardEventKeycode)
         if let record = recordNext, code == FlipKeys.capsLock || FlipKeys.modifierFlags[code] != nil {
             recordNext = nil
             DispatchQueue.main.async { record(code) }
-            return
+            return false
         }
-        guard code == flipKey, !paused() else { flipArmed = false; return }
+        if paused() { flipArmed = false; previewArmed = false; return false }
+        if code == flipKey {
+            if tapped(code, event, &flipArmed, &flipDownAt) { apply(engine.flip(), original: nil) }
+            return false
+        }
+        if code == previewKey {
+            if tapped(code, event, &previewArmed, &previewDownAt) { togglePreview() }
+            // Kept from the system, which would otherwise switch to a Korean input source.
+            return code == FlipKeys.capsLock
+        }
+        flipArmed = false
+        previewArmed = false
+        return false
+    }
+
+    /// Whether this change of a modifier completes a lone tap (press and release within half a second).
+    private func tapped(_ code: Int64, _ event: CGEvent, _ armed: inout Bool, _ downAt: inout Date) -> Bool {
         // Caps Lock reports each press as a toggle, so every change is one press.
-        if code == FlipKeys.capsLock { apply(engine.flip(), original: nil); return }
-        guard let flag = FlipKeys.modifierFlags[code] else { return }
+        if code == FlipKeys.capsLock { return true }
+        guard let flag = FlipKeys.modifierFlags[code] else { return false }
         if event.flags.contains(flag) {
-            flipArmed = true
-            flipDownAt = Date()
-        } else if flipArmed {
-            flipArmed = false
-            if Date().timeIntervalSince(flipDownAt) < 0.5 { apply(engine.flip(), original: nil) }
+            armed = true
+            downAt = Date()
+            return false
         }
+        defer { armed = false }
+        return armed && Date().timeIntervalSince(downAt) < 0.5
+    }
+
+    private func togglePreview() {
+        apply(engine.togglePreview(), original: nil)
+        onPreviewToggled?(engine.preview)
+        // Caps Lock may still have switched to a Korean input source on its way through.
+        guard previewKey == FlipKeys.capsLock else { return }
+        for delay in [0.05, 0.3] { DispatchQueue.main.asyncAfter(deadline: .now() + delay) { InputSource.selectLatin() } }
     }
 
     /// Returns whether the original key is swallowed.
     private func keyDown(_ event: CGEvent) -> Bool {
         flipArmed = false
+        previewArmed = false
         let code = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
         if let record = recordNext {
@@ -148,10 +185,10 @@ final class KeyTap {
             }
             return true
         }
-        if code == flipKey && FlipKeys.modifierFlags[code] == nil && code != FlipKeys.capsLock && !paused() {
-            // A dedicated key (F13, 영문 키...): flip on press and keep it from doing anything else.
-            apply(engine.flip(), original: nil)
-            return true
+        if FlipKeys.modifierFlags[code] == nil && code != FlipKeys.capsLock && !paused() {
+            // A dedicated key (F13, 영문 키...): act on press and keep it from doing anything else.
+            if code == flipKey { apply(engine.flip(), original: nil); return true }
+            if code == previewKey { togglePreview(); return true }
         }
         if !flags.intersection([.maskCommand, .maskControl, .maskAlternate]).isEmpty || paused() {
             engine.reset()
@@ -163,10 +200,18 @@ final class KeyTap {
                 return false
             }
             if engine.composing.isEmpty { InputSource.selectLatin() }
-            // When Caps Lock is the flip key, its lit state says nothing about letter case.
-            let capsOn = flags.contains(.maskAlphaShift) && flipKey != FlipKeys.capsLock
+            // When Caps Lock is one of our keys, its lit state says nothing about letter case.
+            let capsOurs = flipKey == FlipKeys.capsLock || previewKey == FlipKeys.capsLock
+            let capsOn = flags.contains(.maskAlphaShift) && !capsOurs
             let upper = flags.contains(.maskShift) != capsOn
-            return apply(engine.letter(upper ? Character(letter.uppercased()) : letter), original: event)
+            let char = upper ? Character(letter.uppercased()) : letter
+            if capsOurs && flags.contains(.maskAlphaShift) {
+                // A letter passed through as is would still come out in capitals.
+                let units = Array(String(char).utf16)
+                event.flags.remove(.maskAlphaShift)
+                event.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+            }
+            return apply(engine.letter(char), original: event)
         }
         switch code {
         case Self.delete: return apply(engine.backspace(), original: event)
